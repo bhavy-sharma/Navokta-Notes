@@ -2,72 +2,144 @@
 
 export default function Footer() {
   return (
-    <footer className="bg-gray-900 text-gray-300 pt-16 pb-8">
-      <div className="container mx-auto px-6 grid grid-cols-1 md:grid-cols-4 gap-10">
+    <footer className="relative overflow-hidden" style={{
+      background: 'radial-gradient(circle at top center, #0a0a0a, #000)',
+    }}>
+      {/* Background Grid */}
+      <div
+        className="absolute inset-0 opacity-5"
+        style={{
+          backgroundImage: `
+            linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px),
+            linear-gradient(0deg, rgba(255,255,255,0.05) 1px, transparent 1px)
+          `,
+          backgroundSize: '40px 40px',
+        }}
+      />
 
-        {/* Brand */}
-        <div>
-          <h3 className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 text-transparent bg-clip-text mb-4">
-            NotesHub
-          </h3>
-          <p className="mb-4 text-sm text-gray-400 leading-relaxed">
-            Empowering students with free, high-quality academic resources — one PDF at a time.
-          </p>
-          <p className="text-blue-300 text-sm font-medium">Made with ❤️ by Bhavy</p>
-        </div>
+      {/* Floating Orbs */}
+      <div className="absolute -top-20 left-1/4 w-96 h-96 bg-gradient-to-r from-blue-600/20 to-cyan-600/20 rounded-full blur-3xl animate-pulse"></div>
+      <div className="absolute -bottom-20 right-1/4 w-96 h-96 bg-gradient-to-l from-purple-600/20 to-pink-600/20 rounded-full blur-3xl animate-pulse delay-1000"></div>
 
-        {/* Quick Links */}
-        <div>
-          <h4 className="text-lg font-semibold text-white mb-4">Quick Links</h4>
-          <ul className="space-y-2 text-sm">
-            {['Home', 'Courses', 'PYQs', 'Videos', 'Admin'].map((link) => (
-              <li key={link}>
-                <a href={`/${link.toLowerCase().replace(' ', '')}`} className="hover:text-white transition">
-                  {link}
-                </a>
-              </li>
-            ))}
-          </ul>
-        </div>
+      <div className="container mx-auto px-6 pt-20 pb-12 relative z-10">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-10">
 
-        {/* Resources */}
-        <div>
-          <h4 className="text-lg font-semibold text-white mb-4">Resources</h4>
-          <ul className="space-y-2 text-sm">
-            {['About Us', 'Contact', 'Privacy Policy', 'Contribute', 'Report Issue'].map((item) => (
-              <li key={item}>
-                <a href="#" className="hover:text-white transition">
-                  {item}
-                </a>
-              </li>
-            ))}
-          </ul>
-        </div>
+          {/* Brand */}
+          <div>
+            <h3 className="text-2xl font-black bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 text-transparent bg-clip-text mb-4">
+              Navokta Notes
+            </h3>
+            <p className="text-gray-400 text-sm leading-relaxed mb-6 max-w-xs">
+              Empowering students with free, high-quality academic resources — one PDF at a time.
+            </p>
 
-        {/* Connect */}
-        <div>
-          <h4 className="text-lg font-semibold text-white mb-4">Connect</h4>
-          <div className="flex space-x-4 mb-4">
-            {['𝕏', '📘', '📸', '▶️'].map((icon, idx) => (
-              <a
-                key={idx}
-                href="#"
-                className="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center hover:bg-blue-600 transition"
-              >
-                {icon}
-              </a>
-            ))}
+            {/* Creator Badge */}
+            <div className="flex items-center space-x-2 text-sm text-gray-500 border-l-2 border-gradient-to-b from-blue-500 to-purple-500 pl-3">
+              <span>⚡</span>
+              <span className="font-medium text-white">Bhavy Sharma</span>
+              <span>- The One-Man Army</span>
+            </div>
           </div>
-          <p className="text-xs text-gray-500">
-            Join 10K+ students already using NotesHub.
-          </p>
+
+          {/* Quick Links */}
+          <div>
+            <h4 className="text-lg font-bold text-white mb-5 flex items-center">
+              <span className="w-1.5 h-1.5 bg-blue-500 rounded-full mr-3"></span>
+              Quick Links
+            </h4>
+            <ul className="space-y-3">
+              {[
+                { name: 'Home', href: '/' },
+                { name: 'Courses', href: '/courses' },
+                { name: 'PYQs', href: '/pyqs' },
+                { name: 'Videos', href: '/videos' },
+                { name: 'Admin', href: '/admin/dashboard' },
+              ].map((link) => (
+                <li key={link.name}>
+                  <a
+                    href={link.href}
+                    className="text-gray-400 hover:text-blue-300 transition-all duration-300 hover:translate-x-1 block text-sm"
+                  >
+                    {link.name}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Resources */}
+          <div>
+            <h4 className="text-lg font-bold text-white mb-5 flex items-center">
+              <span className="w-1.5 h-1.5 bg-purple-500 rounded-full mr-3"></span>
+              Resources
+            </h4>
+            <ul className="space-y-3">
+              {[
+                'About Us',
+                'Contact',
+                'Privacy Policy',
+                'Contribute',
+                'Report Issue',
+              ].map((item) => (
+                <li key={item}>
+                  <a
+                    href="#"
+                    className="text-gray-400 hover:text-purple-300 transition-all duration-300 hover:translate-x-1 block text-sm"
+                  >
+                    {item}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Connect */}
+          <div>
+            <h4 className="text-lg font-bold text-white mb-5">Connect With Me</h4>
+            <div className="flex space-x-3 mb-6">
+              {[
+                { name: 'Twitter', icon: '𝕏', href: 'https://x.com/bhavy_codes', color: 'hover:bg-blue-500' },
+                { name: 'LinkedIn', icon: '📘', href: 'https://linkedin.com/in/bhavy-sharma-dev', color: 'hover:bg-blue-600' },
+                { name: 'Instagram', icon: '📸', href: 'https://instagram.com/bhavy_codes', color: 'hover:bg-pink-600' },
+                { name: 'YouTube', icon: '▶️', href: 'https://youtube.com/c/BhavyCodes', color: 'hover:bg-red-600' },
+              ].map((social) => (
+                <a
+                  key={social.name}
+                  href={social.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={`w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center text-sm transition-transform duration-300 hover:scale-110 ${social.color}`}
+                  title={social.name}
+                >
+                  {social.icon}
+                </a>
+              ))}
+            </div>
+
+            {/* Student Community */}
+            <p className="text-xs text-gray-500 leading-relaxed">
+              Join <strong className="text-white">10,000+</strong> students learning smarter every day.
+            </p>
+          </div>
+
         </div>
 
-      </div>
+        {/* Bottom Bar */}
+        <div className="border-t border-gray-800 mt-16 pt-8 text-center">
+          <p className="text-gray-500 text-sm">
+            &copy; {new Date().getFullYear()} <strong className="text-white">Navokta Notes</strong>. Crafted with{' '}
+            <span className="text-red-500">❤️</span> by{' '}
+            <span className="font-bold bg-gradient-to-r from-blue-400 to-pink-400 text-transparent bg-clip-text">
+              Bhavy Sharma
+            </span>
+            . All rights reserved.
+          </p>
 
-      {/* Bottom */}
-      <div className="border-t border-gray-800 mt-12 pt-6 text-center text-sm text-gray-500">
-        &copy; {new Date().getFullYear()} NotesHub. Crafted with passion by Bhavy Sharma. All rights reserved.
+          {/* Subtle Tagline */}
+          <p className="text-gray-600 text-xs mt-2">
+            Made in India • For Students, By a Student
+          </p>
+        </div>
       </div>
     </footer>
   );
