@@ -5,12 +5,15 @@ import { useRouter } from 'next/navigation';
 
 export default function AdminDashboard() {
   const [user, setUser] = useState(null);
+  const [courses, setCourses] = useState([]);
   const [uploadData, setUploadData] = useState({
     title: '',
+    course: '', // selected course
     type: 'pdf',
     url: '',
     file: null,
   });
+  const [newCourse, setNewCourse] = useState({ name: '', code: '' });
   const [newAdmin, setNewAdmin] = useState({ name: '', email: '', password: '' });
   const [uploading, setUploading] = useState(false);
   const [uploadedUrl, setUploadedUrl] = useState('');
@@ -32,7 +35,20 @@ export default function AdminDashboard() {
     } else {
       setUser(parsedUser);
     }
+
+    // Load courses
+    fetchCourses();
   }, [router]);
+
+  const fetchCourses = async () => {
+    try {
+      const res = await fetch('/api/courses');
+      const data = await res.json();
+      if (res.ok) setCourses(data);
+    } catch (err) {
+      alert('Failed to load courses');
+    }
+  };
 
   const handleLogout = () => {
     localStorage.removeItem('navokta_token');
@@ -53,12 +69,12 @@ export default function AdminDashboard() {
     setUploading(true);
     const formData = new FormData();
     formData.append('file', file);
-    formData.append('upload_preset', 'notes_upload'); // Create this in Cloudinary
+    formData.append('upload_preset', 'notes_upload');
     formData.append('folder', 'navokta_notes');
 
     try {
       const res = await fetch(
-        `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/upload`,
+        `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/raw/upload`,
         {
           method: 'POST',
           body: formData,
@@ -86,13 +102,13 @@ export default function AdminDashboard() {
       if (!fileUrl) return;
     }
 
-    // Send to your API
     const payload = {
-      title: uploadData.title,
-      type: uploadData.type,
-      url: uploadData.url,
-      fileUrl,
-    };
+  title: uploadData.title,
+  courseCode: uploadData.course, // e.g., 'bca'
+  type: uploadData.type,
+  youtubeUrl: uploadData.type === 'video' ? uploadData.url : undefined,
+  fileUrl,
+};
 
     try {
       const res = await fetch('/api/admin/upload', {
@@ -107,8 +123,36 @@ export default function AdminDashboard() {
       const result = await res.json();
       if (res.ok) {
         alert('✅ Resource uploaded successfully!');
-        setUploadData({ title: '', type: 'pdf', url: '', file: null });
+        setUploadData({ title: '', course: '', type: 'pdf', url: '', file: null });
         setUploadedUrl('');
+      } else {
+        alert('Error: ' + result.message);
+      }
+    } catch (err) {
+      alert('Network error');
+    }
+  };
+
+  // Add new course
+  const handleAddCourse = async (e) => {
+    e.preventDefault();
+    if (!newCourse.name || !newCourse.code) {
+      alert('Name and code are required');
+      return;
+    }
+
+    try {
+      const res = await fetch('/api/courses', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newCourse),
+      });
+
+      const result = await res.json();
+      if (res.ok) {
+        alert(`✅ Course "${result.name}" added!`);
+        setCourses([...courses, result]);
+        setNewCourse({ name: '', code: '' });
       } else {
         alert('Error: ' + result.message);
       }
@@ -122,7 +166,6 @@ export default function AdminDashboard() {
     e.preventDefault();
     const confirm = window.confirm(`Add ${newAdmin.name} as admin?`);
     if (confirm) {
-      // Call your API to create admin
       alert(`✅ New admin ${newAdmin.name} added!`);
       setNewAdmin({ name: '', email: '', password: '' });
     }
@@ -153,7 +196,7 @@ export default function AdminDashboard() {
           <h2 className="text-xl font-semibold">
             Welcome, <span className="text-red-300">{user.name}</span>
           </h2>
-          <p className="text-gray-400">Upload notes, videos, and manage admins.</p>
+          <p className="text-gray-400">Upload notes, manage courses & admins.</p>
         </div>
 
         {/* Upload Section */}
@@ -162,12 +205,26 @@ export default function AdminDashboard() {
           <form onSubmit={handleSubmit} className="space-y-4">
             <input
               type="text"
-              placeholder="Title (e.g., BCA DBMS Notes)"
+              placeholder="Title (e.g., DBMS Notes)"
               value={uploadData.title}
               onChange={(e) => setUploadData({ ...uploadData, title: e.target.value })}
               className="w-full px-4 py-2 bg-black/60 border border-gray-700 rounded-lg text-white"
               required
             />
+
+            <select
+              value={uploadData.course}
+              onChange={(e) => setUploadData({ ...uploadData, course: e.target.value })}
+              className="w-full px-4 py-2 bg-black/60 border border-gray-700 rounded-lg text-white"
+              required
+            >
+              <option value="">Select Course</option>
+              {courses.map((course) => (
+                <option key={course.code} value={course.code}>
+                  {course.name}
+                </option>
+              ))}
+            </select>
 
             <select
               value={uploadData.type}
@@ -188,12 +245,8 @@ export default function AdminDashboard() {
                   onChange={handleFileChange}
                   className="w-full px-4 py-2 bg-black/60 border border-gray-700 rounded-lg text-white"
                 />
-                {uploading && (
-                  <div className="text-blue-400">Uploading to Cloudinary...</div>
-                )}
-                {uploadedUrl && (
-                  <div className="text-green-400 text-sm">✅ Uploaded!</div>
-                )}
+                {uploading && <div className="text-blue-400">Uploading to Cloudinary...</div>}
+                {uploadedUrl && <div className="text-green-400 text-sm">✅ Uploaded!</div>}
               </>
             )}
 
@@ -214,6 +267,35 @@ export default function AdminDashboard() {
               className="bg-gradient-to-r from-red-600 to-pink-600 text-white px-6 py-2 rounded-lg hover:shadow-lg disabled:opacity-70"
             >
               {uploading ? 'Uploading...' : 'Upload Resource'}
+            </button>
+          </form>
+        </section>
+
+        {/* Add Course */}
+        <section className="bg-black/40 backdrop-blur-sm border border-gray-800 rounded-2xl p-6 mb-8">
+          <h3 className="text-lg font-semibold mb-4">➕ Add New Course</h3>
+          <form onSubmit={handleAddCourse} className="space-y-4 max-w-md">
+            <input
+              type="text"
+              placeholder="Course Name (e.g., BCA)"
+              value={newCourse.name}
+              onChange={(e) => setNewCourse({ ...newCourse, name: e.target.value })}
+              className="w-full px-4 py-2 bg-black/60 border border-gray-700 rounded-lg text-white"
+              required
+            />
+            <input
+              type="text"
+              placeholder="Code (e.g., bca)"
+              value={newCourse.code}
+              onChange={(e) => setNewCourse({ ...newCourse, code: e.target.value.toLowerCase() })}
+              className="w-full px-4 py-2 bg-black/60 border border-gray-700 rounded-lg text-white"
+              required
+            />
+            <button
+              type="submit"
+              className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-6 py-2 rounded-lg hover:shadow-lg"
+            >
+              Add Course
             </button>
           </form>
         </section>

@@ -10,8 +10,15 @@ const resourceSchema = new mongoose.Schema({
   },
   fileUrl: String,
   youtubeUrl: String,
-  course: { type: mongoose.Schema.Types.ObjectId, ref: 'Course' },
-  uploadedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  course: { 
+    type: mongoose.Schema.Types.ObjectId, 
+    ref: 'Course', 
+    required: true  // ✅ Ensure course is required
+  },
+  uploadedBy: { 
+    type: mongoose.Schema.Types.ObjectId, 
+    ref: 'User' 
+  },
 }, { timestamps: true });
 
 export default mongoose.models.Resource || mongoose.model('Resource', resourceSchema);
