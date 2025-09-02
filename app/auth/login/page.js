@@ -58,9 +58,7 @@ export default function LoginPage() {
             email: data.user.email,
             role: data.user.role,
             // ✅ Fixed: Correct template string for avatar URL
-            avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(
-              data.user.name
-            )}&background=1e40af&color=fff`,
+            avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(data.user.name)}&background=1e40af&color=fff`,
           })
         );
 
