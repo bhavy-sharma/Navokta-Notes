@@ -6,22 +6,9 @@ import Link from 'next/link';
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(false); // Mock state
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState(null); // null = loading, false = not logged in
 
-  // Mock login (replace with real auth later)
-  useEffect(() => {
-    const mockAuth = false; // Set to true to test logged-in state
-    if (mockAuth) {
-      setIsLoggedIn(true);
-      setUser({
-        name: 'Bhavy',
-        avatar: 'https://ui-avatars.com/api/?name=Bhavy&background=1e40af&color=fff',
-      });
-    }
-  }, []);
-
-  // Detect scroll for glassmorphism
+  // Detect scroll
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 20);
@@ -30,9 +17,24 @@ export default function Header() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  // Check auth status on mount
+  useEffect(() => {
+    const token = localStorage.getItem('navokta_token');
+    const userData = localStorage.getItem('navokta_user');
+
+    if (token && userData) {
+      setUser(JSON.parse(userData));
+    } else {
+      setUser(false);
+    }
+  }, []);
+
   const handleLogout = () => {
-    setIsLoggedIn(false);
-    setUser(null);
+    localStorage.removeItem('navokta_token');
+    localStorage.removeItem('navokta_user');
+    setUser(false);
+    window.location.href = '/';
+    alert('Logged out successfully!');
   };
 
   return (
@@ -71,7 +73,7 @@ export default function Header() {
               Courses
             </Link>
 
-            {!isLoggedIn ? (
+            {!user ? (
               <>
                 <Link
                   href="/auth/login"
@@ -95,7 +97,7 @@ export default function Header() {
               <div className="relative group">
                 <button className="flex items-center space-x-2 bg-white/10 backdrop-blur-sm px-3 py-2 rounded-full hover:bg-white/20 transition-all duration-300">
                   <img
-                    src={user.avatar}
+                    src={user.avatar || `https://ui-avatars.com/api/?name=${user.name}&background=1e40af&color=fff`}
                     alt="Profile"
                     className="w-8 h-8 rounded-full border border-blue-500/50"
                   />
@@ -170,7 +172,7 @@ export default function Header() {
                 Courses
               </Link>
 
-              {!isLoggedIn ? (
+              {!user ? (
                 <>
                   <Link
                     href="/auth/login"
