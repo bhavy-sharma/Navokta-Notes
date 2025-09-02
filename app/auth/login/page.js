@@ -1,4 +1,3 @@
-// app/auth/login/page.jsx
 'use client';
 
 import { useState } from 'react';
@@ -47,10 +46,30 @@ export default function LoginPage() {
       const data = await res.json();
 
       if (res.ok) {
+        // ✅ Save token (you can replace with JWT later)
+        const token = data.token || btoa(formData.email); // Temporary token
+        localStorage.setItem('navokta_token', token);
+
+        // ✅ Save user data
+        localStorage.setItem(
+          'navokta_user',
+          JSON.stringify({
+            name: data.user.name,
+            email: data.user.email,
+            role: data.user.role,
+            // ✅ Fixed: Correct template string for avatar URL
+            avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(
+              data.user.name
+            )}&background=1e40af&color=fff`,
+          })
+        );
+
         setSuccess('Login successful! Redirecting...');
         showToast('Welcome back!', 'success');
+
+        // Refresh the page to update Header state
         setTimeout(() => {
-          router.push('/'); // Redirect to home or dashboard
+          window.location.href = '/'; // Ensures Header re-renders with user
         }, 1000);
       } else {
         setError(data.message || 'Invalid credentials');
