@@ -161,15 +161,41 @@ export default function AdminDashboard() {
     }
   };
 
-  // Add new admin
-  const handleAddAdmin = async (e) => {
-    e.preventDefault();
-    const confirm = window.confirm(`Add ${newAdmin.name} as admin?`);
-    if (confirm) {
-      alert(`✅ New admin ${newAdmin.name} added!`);
+// Add new admin
+const handleAddAdmin = async (e) => {
+  e.preventDefault();
+  const { name, email, password } = newAdmin;
+
+  if (!name || !email || !password) {
+    alert('All fields are required');
+    return;
+  }
+
+  const confirm = window.confirm(`Add ${name} as admin?`);
+  if (!confirm) return;
+
+  try {
+    const res = await fetch('/api/admin/add-admin', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${localStorage.getItem('navokta_token')}`,
+      },
+      body: JSON.stringify({ name, email, password }),
+    });
+
+    const data = await res.json();
+
+    if (res.ok) {
+      alert(`✅ Admin "${data.name}" created successfully!`);
       setNewAdmin({ name: '', email: '', password: '' });
+    } else {
+      alert('Error: ' + data.message);
     }
-  };
+  } catch (err) {
+    alert('Network error: ' + err.message);
+  }
+};
 
   if (!user) return <div className="text-white">Loading...</div>;
 
