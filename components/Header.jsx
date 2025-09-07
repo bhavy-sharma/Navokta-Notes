@@ -2,11 +2,13 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import LoginRequiredModal from './LoginRequiredModal';
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [user, setUser] = useState(null); // null = loading, false = not logged in
+  const [showLoginModal, setShowLoginModal] = useState(false);
 
   // Detect scroll
   useEffect(() => {
@@ -37,6 +39,17 @@ export default function Header() {
     alert('Logged out successfully!');
   };
 
+  const handleCourseClick = (e) => {
+    if (!user) {
+      e.preventDefault();
+      setShowLoginModal(true);
+    }
+  };
+
+  const closeModal = () => {
+    setShowLoginModal(false);
+  };
+
   return (
     <header className="relative">
       {/* Main Header Bar */}
@@ -63,12 +76,13 @@ export default function Header() {
           {/* Desktop Nav */}
           <nav className="hidden md:flex items-center space-x-10">
             <Link
-              href="/courses"
-              className={`font-medium transition ${
+              href={user ? "/courses" : "#"}
+              onClick={handleCourseClick}
+              className={`font-medium transition cursor-pointer ${
                 isScrolled
                   ? 'text-gray-300 hover:text-white'
                   : 'text-gray-300 hover:text-white'
-              }`}
+              } ${!user ? 'opacity-60 cursor-not-allowed' : ''}`}
             >
               Courses
             </Link>
@@ -165,9 +179,11 @@ export default function Header() {
           <div className="md:hidden bg-black/95 backdrop-blur-sm border-t border-gray-800">
             <div className="px-6 py-4 flex flex-col space-y-4 text-sm">
               <Link
-                href="/courses"
-                className="text-gray-300 hover:text-white transition"
-                onClick={() => setIsMenuOpen(false)}
+                href={user ? "/courses" : "#"}
+                onClick={handleCourseClick}
+                className={`transition cursor-pointer ${
+                  !user ? 'opacity-60 cursor-not-allowed' : 'text-gray-300 hover:text-white'
+                }`}
               >
                 Courses
               </Link>
@@ -228,6 +244,12 @@ export default function Header() {
           </div>
         )}
       </div>
+
+      {/* Login Required Modal */}
+      <LoginRequiredModal 
+        isOpen={showLoginModal} 
+        onClose={closeModal} 
+      />
     </header>
   );
 }

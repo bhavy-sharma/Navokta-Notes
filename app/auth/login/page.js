@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 
 export default function LoginPage() {
+  
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -44,31 +45,38 @@ export default function LoginPage() {
       });
 
       const data = await res.json();
+      console.log(data);
+
+     
+
+
 
       if (res.ok) {
-        // ✅ Save token (you can replace with JWT later)
+
+        
         const token = data.token || btoa(formData.email); // Temporary token
         localStorage.setItem('navokta_token', token);
 
-        // ✅ Save user data
         localStorage.setItem(
           'navokta_user',
           JSON.stringify({
             name: data.user.name,
             email: data.user.email,
             role: data.user.role,
-            // ✅ Fixed: Correct template string for avatar URL
             avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(data.user.name)}&background=1e40af&color=fff`,
           })
         );
 
+         if(data.user.role==="user") {
         setSuccess('Login successful! Redirecting...');
         showToast('Welcome back!', 'success');
+        window.location.href = '/'; // Ensures Header re-renders with user
+      }else if(data.user.role==="admin") {
+        setSuccess('Login successful! Redirecting...');
+        showToast('Welcome back!', 'success');
+        window.location.href = '/admin/dashboard'; // Ensures Header re-renders with user
+      }
 
-        // Refresh the page to update Header state
-        setTimeout(() => {
-          window.location.href = '/'; // Ensures Header re-renders with user
-        }, 1000);
       } else {
         setError(data.message || 'Invalid credentials');
         showToast(data.message || 'Login failed', 'error');
