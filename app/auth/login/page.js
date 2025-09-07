@@ -70,10 +70,13 @@ export default function LoginPage() {
          if(data.user.role==="user") {
         setSuccess('Login successful! Redirecting...');
         showToast('Welcome back!', 'success');
+         
         window.location.href = '/'; // Ensures Header re-renders with user
+       
       }else if(data.user.role==="admin") {
         setSuccess('Login successful! Redirecting...');
         showToast('Welcome back!', 'success');
+        
         window.location.href = '/admin/dashboard'; // Ensures Header re-renders with user
       }
 
