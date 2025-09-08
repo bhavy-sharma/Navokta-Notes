@@ -113,20 +113,26 @@ export default function AdminDashboard() {
     }
 
     const payload = {
-      title: uploadData.title,
-      courseCode: uploadData.course,
+      subject: uploadData.title,
+      courseName: uploadData.course,
       semester: parseInt(uploadData.semester), // Ensure semester is stored as integer
-      type: uploadData.type,
-      youtubeUrl: uploadData.type === 'video' ? uploadData.url : undefined,
-      fileUrl,
+      fileType: uploadData.type,
+      link,
     };
 
     try {
+      const token = localStorage.getItem('navokta_token');
+      if (!token) {
+        alert('Authentication token not found. Please login again.');
+        router.push('/auth/login');
+        return;
+      }
+
       const res = await fetch('/api/admin/upload', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('navokta_token')}`,
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify(payload),
       });
@@ -179,7 +185,7 @@ export default function AdminDashboard() {
     }
   };
 
-  // Add new admin
+  // Add new admin - Fixed version with proper token handling
   const handleAddAdmin = async (e) => {
     e.preventDefault();
     const { name, email, password } = newAdmin;
@@ -189,28 +195,55 @@ export default function AdminDashboard() {
       return;
     }
 
-    const confirm = window.confirm(`Add ${name} as admin?`);
-    if (!confirm) return;
-
     try {
-      const res = await fetch('/api/admin/add-admin', {
+      const token = localStorage.getItem('navokta_token');
+      if (!token) {
+        alert('Authentication token not found. Please login again.');
+        router.push('/auth/login');
+        return;
+      }
+
+      // Debug: Log the token being sent
+      console.log('Sending token:', token.substring(0, 20) + '...');
+      
+      const response = await fetch('/api/admin/add-admin', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('navokta_token')}`,
+          'Authorization': `Bearer ${token}`,
         },
         body: JSON.stringify({ name, email, password }),
       });
 
-      const data = await res.json();
+      // Debug: Log the response status
+      console.log('Response status:', response.status);
+      
+      const data = await response.json();
+      console.log('Response data:', data);
 
-      if (res.ok) {
-        alert(`✅ Admin "${data.name}" created successfully!`);
+      if (response.ok) {
+        alert(`✅ Admin "${data.user.name}" created successfully!`);
         setNewAdmin({ name: '', email: '', password: '' });
       } else {
-        alert('Error: ' + data.message);
+        // More detailed error messages
+        let errorMessage = data.message || 'Unknown error occurred';
+        
+        if (data.error === 'invalid_token') {
+          errorMessage = 'Your session has expired. Please login again.';
+          // Clear localStorage and redirect to login
+          localStorage.removeItem('navokta_token');
+          localStorage.removeItem('navokta_user');
+          router.push('/auth/login');
+        } else if (data.error === 'insufficient_permissions') {
+          errorMessage = 'You do not have permission to add admins.';
+        } else if (data.error === 'user_exists') {
+          errorMessage = 'An admin with this email already exists.';
+        }
+        
+        alert(`Error: ${errorMessage}`);
       }
     } catch (err) {
+      console.error('Error adding admin:', err);
       alert('Network error: ' + err.message);
     }
   };

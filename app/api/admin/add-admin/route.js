@@ -2,42 +2,78 @@
 import { connectToDB } from '@/lib/dbConnect';
 import User from '@/models/User';
 import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'navokta-notes-admin-secret';
-import jwt from 'jsonwebtoken';
-{/*hii  */}
+
 export const POST = async (req) => {
   try {
     await connectToDB();
 
-    // Verify admin JWT
+    // Get authorization header
     const authHeader = req.headers.get('authorization');
+    console.log('Authorization Header:', authHeader);
+    
     if (!authHeader) {
-      return new Response(JSON.stringify({ message: 'Unauthorized' }), { status: 401 });
+      return new Response(JSON.stringify({ 
+        message: 'Unauthorized: No authorization header',
+        error: 'no_auth_header'
+      }), { status: 401 });
     }
 
-    const token = authHeader.split(' ')[1];
-    if (!token) {
-      return new Response(JSON.stringify({ message: 'Token required' }), { status: 401 });
+    const tokenParts = authHeader.split(' ');
+    if (tokenParts.length !== 2 || tokenParts[0] !== 'Bearer') {
+      return new Response(JSON.stringify({ 
+        message: 'Invalid authorization header format',
+        error: 'invalid_auth_format'
+      }), { status: 401 });
     }
+
+    const token = tokenParts[1];
+    if (!token) {
+      return new Response(JSON.stringify({ 
+        message: 'Token required',
+        error: 'no_token'
+      }), { status: 401 });
+    }
+
+    console.log('Token received:', token.substring(0, 30) + '...');
 
     let decoded;
     try {
       decoded = jwt.verify(token, JWT_SECRET);
+      console.log('Decoded token:', decoded);
     } catch (err) {
-      return new Response(JSON.stringify({ message: 'Invalid or expired token' }), { status: 403 });
+      console.error('JWT verification error:', err.message);
+      return new Response(JSON.stringify({ 
+        message: 'Invalid or expired token',
+        error: 'invalid_token',
+        details: err.message
+      }), { status: 403 });
     }
 
-    if (decoded.role !== 'admin') {
-      return new Response(JSON.stringify({ message: 'Access denied. Admins only.' }), { status: 403 });
+    // Check if user has admin role
+    if (!decoded || !decoded.role || decoded.role !== 'admin') {
+      return new Response(JSON.stringify({ 
+        message: 'Access denied. Admins only.',
+        error: 'insufficient_permissions',
+        userRole: decoded?.role,
+        userId: decoded?.id
+      }), { status: 403 });
     }
 
     // Parse body
-    const { name, email, password } = await req.json();
+    const body = await req.json();
+    console.log('Received admin add request body:', body);
+    
+    const { name, email, password } = body;
 
     if (!name || !email || !password) {
       return new Response(
-        JSON.stringify({ message: 'Name, email, and password are required' }),
+        JSON.stringify({ 
+          message: 'Name, email, and password are required',
+          error: 'missing_fields'
+        }),
         { status: 400 }
       );
     }
@@ -46,7 +82,10 @@ export const POST = async (req) => {
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       return new Response(
-        JSON.stringify({ message: 'User with this email already exists' }),
+        JSON.stringify({ 
+          message: 'User with this email already exists',
+          error: 'user_exists'
+        }),
         { status: 409 }
       );
     }
@@ -68,13 +107,22 @@ export const POST = async (req) => {
     return new Response(
       JSON.stringify({
         message: 'Admin created successfully',
-        user: { name: savedAdmin.name, email: savedAdmin.email, role: savedAdmin.role },
+        user: { 
+          id: savedAdmin._id,
+          name: savedAdmin.name, 
+          email: savedAdmin.email, 
+          role: savedAdmin.role 
+        },
       }),
       { status: 201 }
     );
   } catch (error) {
+    console.error('Error in add-admin route:', error);
     return new Response(
-      JSON.stringify({ message: 'Server error', error: error.message }),
+      JSON.stringify({ 
+        message: 'Server error', 
+        error: error.message
+      }),
       { status: 500 }
     );
   }

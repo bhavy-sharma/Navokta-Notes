@@ -20,14 +20,6 @@ export const POST = async (req) => {
       );
     }
 
-    // Check role
-    if (user.role !== 'admin') {
-      return new Response(
-        JSON.stringify({ message: 'Access denied. Admins only.' }),
-        { status: 403 }
-      );
-    }
-
     // Check password
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
@@ -37,9 +29,15 @@ export const POST = async (req) => {
       );
     }
 
-    // Generate JWT
+    // Generate JWT - Include the user's actual role from database
+    // Don't hardcode 'admin' here - use what's in the database
     const token = jwt.sign(
-      { id: user._id, email: user.email, role: user.role },
+      { 
+        id: user._id, 
+        email: user.email, 
+        role: user.role, // Use the role from DB, don't assume it's admin
+        name: user.name 
+      },
       JWT_SECRET,
       { expiresIn: '7d' }
     );
@@ -48,7 +46,13 @@ export const POST = async (req) => {
       JSON.stringify({
         message: 'Login successful',
         token,
-        user: { name: user.name, email: user.email, role: user.role }
+        user: { 
+          id: user._id,
+          name: user.name, 
+          email: user.email, 
+          role: user.role, // Return the actual role
+          avatar: user.avatar 
+        }
       }),
       { status: 200 }
     );
