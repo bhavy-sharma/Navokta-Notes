@@ -5,7 +5,7 @@ import bcrypt from 'bcryptjs';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'navokta-notes-admin-secret';
 import jwt from 'jsonwebtoken';
-
+{/*hii  */}
 export const POST = async (req) => {
   try {
     await connectToDB();
