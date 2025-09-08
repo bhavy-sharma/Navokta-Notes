@@ -26,7 +26,7 @@ export default function AdminDashboard() {
     const token = localStorage.getItem('navokta_token');
 
     if (!userData || !token) {
-      router.push('/admin/login');
+      router.push('/');
       return;
     }
 
@@ -36,7 +36,7 @@ export default function AdminDashboard() {
     } catch (err) {
       localStorage.removeItem('navokta_user');
       localStorage.removeItem('navokta_token');
-      router.push('/admin/login');
+      router.push('/');
       return;
     }
 
@@ -63,7 +63,7 @@ export default function AdminDashboard() {
   const handleLogout = () => {
     localStorage.removeItem('navokta_token');
     localStorage.removeItem('navokta_user');
-    router.push('/admin/login');
+    router.push('/');
   };
 
   // Handle file input
