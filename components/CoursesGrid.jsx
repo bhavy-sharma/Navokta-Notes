@@ -2,75 +2,11 @@
 
 import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
-
-// Login Requirement Modal Component
-const LoginRequirementModal = ({ isOpen, onClose, onLogin }) => {
-  if (!isOpen) return null;
-
-  return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="bg-gray-900 rounded-2xl p-6 sm:p-8 w-full max-w-md relative animate-fadeIn">
-        <button
-          onClick={onClose}
-          className="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-          </svg>
-        </button>
-        
-        <div className="text-center mb-6">
-          <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full flex items-center justify-center">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
-            </svg>
-          </div>
-          <h3 className="text-2xl font-bold text-white mb-2">Login Required</h3>
-          <p className="text-gray-400">Please login to access course materials</p>
-        </div>
-        
-        <div className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">Email</label>
-            <input
-              type="email"
-              placeholder="your@email.com"
-              className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">Password</label>
-            <input
-              type="password"
-              placeholder="••••••••"
-              className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-        </div>
-        
-        <button
-          onClick={onLogin}
-          className="w-full mt-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold rounded-lg hover:from-blue-500 hover:to-purple-500 transition-all duration-300 transform hover:scale-105"
-        >
-          Login
-        </button>
-        
-        <div className="mt-4 text-center">
-          <p className="text-gray-400 text-sm">
-            Don't have an account?{' '}
-            <a href="/register" className="text-blue-400 hover:text-blue-300 font-medium">
-              Sign up
-            </a>
-          </p>
-        </div>
-      </div>
-    </div>
-  );
-};
+import LoginRequiredModal from './LoginRequiredModal';
 
 export default function CoursesGrid() {
   const [isVisible, setIsVisible] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(false); // This should come from your auth context in a real app
+  const [isLoggedIn, setIsLoggedIn] = useState(null); // null = loading, false = not logged in
   const [showLoginModal, setShowLoginModal] = useState(false);
   const containerRef = useRef(null);
 
@@ -82,6 +18,18 @@ export default function CoursesGrid() {
     { name: 'B.Tech', color: 'from-red-500 via-orange-500 to-yellow-500', glow: 'shadow-2xl shadow-red-500/20' },
     { name: 'B.Sc', color: 'from-indigo-500 via-purple-500 to-pink-500', glow: 'shadow-2xl shadow-indigo-500/20' },
   ];
+
+  // Check auth status on mount
+  useEffect(() => {
+    const token = localStorage.getItem('navokta_token');
+    const userData = localStorage.getItem('navokta_user');
+
+    if (token && userData) {
+      setIsLoggedIn(true);
+    } else {
+      setIsLoggedIn(false);
+    }
+  }, []);
 
   // Intersection Observer for reveal animation
   useEffect(() => {
@@ -124,7 +72,7 @@ export default function CoursesGrid() {
     e.currentTarget.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)';
   };
 
-  const handleCourseClick = (e, courseName) => {
+  const handleCourseClick = (e) => {
     if (!isLoggedIn) {
       e.preventDefault();
       setShowLoginModal(true);
@@ -132,12 +80,6 @@ export default function CoursesGrid() {
   };
 
   const closeModal = () => {
-    setShowLoginModal(false);
-  };
-
-  const handleLogin = () => {
-    // In a real app, this would handle actual login logic
-    setIsLoggedIn(true);
     setShowLoginModal(false);
   };
 
@@ -181,7 +123,8 @@ export default function CoursesGrid() {
           {courses.map((course, idx) => (
             <Link
               key={idx}
-              href={`/courses/${course.name}`}
+              href={isLoggedIn ? `/courses/${course.name}` : "#"}
+              onClick={handleCourseClick}
               className={`group block transition-all duration-700 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}
               style={{ transitionDelay: `${idx * 100}ms` }}
             >
@@ -189,7 +132,6 @@ export default function CoursesGrid() {
                 className={`relative p-8 md:p-10 rounded-3xl text-white text-center overflow-hidden cursor-pointer transition-all duration-500 transform-gpu ${course.glow} ${!isLoggedIn ? 'blur-sm' : ''}`}
                 onMouseMove={handleMouseMove}
                 onMouseLeave={resetTransform}
-                onClick={(e) => handleCourseClick(e, course.name)}
                 style={{
                   background: `linear-gradient(135deg, ${course.color})`,
                   transformStyle: 'preserve-3d',
@@ -223,22 +165,11 @@ export default function CoursesGrid() {
         </div>
       </div>
 
-      {/* Login Requirement Modal */}
-      <LoginRequirementModal 
+      {/* Login Required Modal */}
+      <LoginRequiredModal 
         isOpen={showLoginModal} 
         onClose={closeModal} 
-        onLogin={handleLogin} 
       />
-
-      <style jsx>{`
-        .animate-fadeIn {
-          animation: fadeIn 0.3s ease-out;
-        }
-        @keyframes fadeIn {
-          from { opacity: 0; transform: translateY(10px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-      `}</style>
     </section>
   );
 }
