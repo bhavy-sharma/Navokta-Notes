@@ -15,10 +15,14 @@ export default function AdminDashboard() {
     url: '',
     file: null,
   });
-  const [newCourse, setNewCourse] = useState({ name: '', code: '' });
+  // const [newCourse, setNewCourse] = useState({ name: '', code: '' });
   const [newAdmin, setNewAdmin] = useState({ name: '', email: '', password: '' });
   const [uploading, setUploading] = useState(false);
   const [uploadedUrl, setUploadedUrl] = useState('');
+  const [newCourse, setNewCourse] = useState({
+  courseName: '',
+  semester: '',
+});
   const router = useRouter();
 
   useEffect(() => {
@@ -158,32 +162,15 @@ export default function AdminDashboard() {
   };
 
   // Add new course
-  const handleAddCourse = async (e) => {
-    e.preventDefault();
-    if (!newCourse.name || !newCourse.code) {
-      alert('Name and code are required');
-      return;
-    }
-
-    try {
-      const res = await fetch('/api/courses', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newCourse),
-      });
-
-      const result = await res.json();
-      if (res.ok) {
-        alert(`✅ Course "${result.name}" added!`);
-        setCourses([...courses, result]);
-        setNewCourse({ name: '', code: '' });
-      } else {
-        alert('Error: ' + result.message);
-      }
-    } catch (err) {
-      alert('Network error');
-    }
-  };
+const handleAddCourse = (e) => {
+  e.preventDefault();
+  if (!newCourse.courseName || !newCourse.semester) {
+    alert("Please fill in all fields");
+    return;
+  }
+  // Submit to backend
+  console.log(newCourse); // { courseName: "BCA", semester: 1 }
+};
 
   // Add new admin - Fixed version with proper token handling
   const handleAddAdmin = async (e) => {
@@ -456,47 +443,49 @@ export default function AdminDashboard() {
           {/* Side Panel */}
           <div className="space-y-8">
             {/* Add Course */}
-            <div className="bg-black/40 backdrop-blur-sm border border-purple-500/20 rounded-3xl p-8">
-              <div className="flex items-center mb-6">
-                <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-xl flex items-center justify-center mr-4">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                  </svg>
-                </div>
-                <h3 className="text-xl font-semibold text-white">Add New Course</h3>
-              </div>
-              
-              <form onSubmit={handleAddCourse} className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">Course Name</label>
-                  <input
-                    type="text"
-                    placeholder="e.g., BCA"
-                    value={newCourse.name}
-                    onChange={(e) => setNewCourse({ ...newCourse, name: e.target.value })}
-                    className="w-full px-4 py-3 bg-black/60 border border-gray-600 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">Course Code</label>
-                  <input
-                    type="text"
-                    placeholder="e.g., bca"
-                    value={newCourse.code}
-                    onChange={(e) => setNewCourse({ ...newCourse, code: e.target.value.toLowerCase() })}
-                    className="w-full px-4 py-3 bg-black/60 border border-gray-600 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
-                    required
-                  />
-                </div>
-                <button
-                  type="submit"
-                  className="w-full bg-gradient-to-r from-blue-500 to-cyan-500 text-white py-3 rounded-xl font-medium hover:shadow-lg hover:shadow-blue-500/25 transition-all duration-200 transform hover:-translate-y-0.5"
-                >
-                  Add Course
-                </button>
-              </form>
-            </div>
+           <div className="bg-black/40 backdrop-blur-sm border border-purple-500/20 rounded-3xl p-8">
+  <div className="flex items-center mb-6">
+    <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-xl flex items-center justify-center mr-4">
+      <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+      </svg>
+    </div>
+    <h3 className="text-xl font-semibold text-white">Add Semester</h3>
+  </div>
+  
+  <form onSubmit={handleAddCourse} className="space-y-4">
+    <div>
+      <label className="block text-sm font-medium text-gray-300 mb-2">Course Name</label>
+      <input
+        type="text"
+        placeholder="e.g., BCA"
+        value={newCourse.courseName}
+        onChange={(e) => setNewCourse({ ...newCourse, courseName: e.target.value })}
+        className="w-full px-4 py-3 bg-black/60 border border-gray-600 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
+        required
+      />
+    </div>
+    <div>
+      <label className="block text-sm font-medium text-gray-300 mb-2">Semester Number</label>
+      <input
+        type="number"
+        min="1"
+        max="10"
+        placeholder="e.g., 1"
+        value={newCourse.semester || ''}
+        onChange={(e) => setNewCourse({ ...newCourse, semester: parseInt(e.target.value) || '' })}
+        className="w-full px-4 py-3 bg-black/60 border border-gray-600 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
+        required
+      />
+    </div>
+    <button
+      type="submit"
+      className="w-full bg-gradient-to-r from-blue-500 to-cyan-500 text-white py-3 rounded-xl font-medium hover:shadow-lg hover:shadow-blue-500/25 transition-all duration-200 transform hover:-translate-y-0.5"
+    >
+      Add Semester
+    </button>
+  </form>
+</div>
 
             {/* Add Admin */}
             <div className="bg-black/40 backdrop-blur-sm border border-purple-500/20 rounded-3xl p-8">
