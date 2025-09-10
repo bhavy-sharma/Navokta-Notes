@@ -20,6 +20,8 @@ export default function AdminDashboard() {
   const [uploading, setUploading] = useState(false);
   const [uploadedUrl, setUploadedUrl] = useState('');
   const router = useRouter();
+  const [seccessAdmin, setSuccessAdmin] = useState(false);
+  
 
   useEffect(() => {
     const userData = localStorage.getItem('navokta_user');
@@ -191,6 +193,7 @@ export default function AdminDashboard() {
 
     const confirm = window.confirm(`Add ${name} as admin?`);
     if (!confirm) return;
+    // const roll="admin";
 
     try {
       const res = await fetch('/api/admin/add-admin', {

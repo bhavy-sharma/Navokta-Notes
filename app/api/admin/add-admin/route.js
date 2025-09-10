@@ -62,6 +62,7 @@ export const POST = async (req) => {
       password: hashedPassword,
       role: 'admin',
     });
+    console.log('Admin created:', admin);
 
     const savedAdmin = await admin.save();
 
