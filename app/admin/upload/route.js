@@ -1,5 +1,5 @@
 // app/api/admin/upload/route.js
-import { connectToDB } from '@/lib/dbConnect';
+import { connectDB } from '@/lib/dbConnect';
 import Resource from '@/models/Resource';
 import Course from '@/models/Course';
 import jwt from 'jsonwebtoken';
@@ -8,7 +8,7 @@ const JWT_SECRET = process.env.JWT_SECRET || 'navokta-notes-admin-secret';
 
 export const POST = async (req) => {
   try {
-    await connectToDB();
+    await connectDB();
 
     // Verify JWT
     const authHeader = req.headers.get('authorization');

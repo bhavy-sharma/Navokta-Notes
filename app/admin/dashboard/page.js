@@ -396,8 +396,13 @@ export default function AdminDashboard() {
                   >
                     <option value="">Select Course</option>
                     {courses.map((course) => (
-                      <option key={course._id || course.code} value={course.name}>
-                        {course.name}
+                      <option key={course._id} value={course.courseName}>
+                        {course.courseName} (Sem {course.semester})
+                        {course.description && (
+                          <span className="ml-2 text-gray-400 text-xs">
+                            — {course.description.substring(0, 30)}...
+                          </span>
+                        )}
                       </option>
                     ))}
                   </select>
