@@ -1,13 +1,13 @@
 "use client";
 
 import { useContext, useEffect, useState } from 'react';
-import { useSemester } from '../layout';
+// import { useSemester } from '../layout';
 import Link from 'next/link';
 
 export default function CoursesPage() {
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
-  const {setSemester,semester}=useContext(useSemester)
+  // const {setSemester,semester}=useContext(useSemester)
 
 
   useEffect(() => {
@@ -97,10 +97,10 @@ export default function CoursesPage() {
               <h2 className="text-2xl font-semibold text-purple-300 mb-2">
                 {course.name}
               </h2>
-              <p className="text-gray-400 mb-4">{course.description}</p>
+              <p className="text-gray-400 mb-4">{course.courseName}</p>
               <p className="text-sm text-gray-300">
                 📚 Total Semesters:{" "}
-                <span className="font-bold text-pink-400">{course.semester}</span>
+                <span className="font-bold text-pink-400">{course.description}</span>
               </p>
               <button className="mt-4 px-4 py-2 rounded-lg bg-purple-600 hover:bg-purple-700 text-white font-medium shadow-md shadow-purple-500/30 transition">
                 View Details
