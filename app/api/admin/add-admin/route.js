@@ -1,5 +1,5 @@
 // app/api/admin/add-admin/route.js
-import { connectToDB } from '@/lib/dbConnect';
+import { connectDB } from '@/lib/dbConnect';
 import User from '@/models/User';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
@@ -8,7 +8,7 @@ const JWT_SECRET = process.env.JWT_SECRET || 'navokta-notes-admin-secret';
 
 export const POST = async (req) => {
   try {
-    await connectToDB();
+    await connectDB();
 
     // Get authorization header
     const authHeader = req.headers.get('authorization');
