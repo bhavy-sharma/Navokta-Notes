@@ -1,10 +1,15 @@
 import mongoose from 'mongoose';
 
 const resourceSchema = new mongoose.Schema({
- courseName:{type:String,requierd:ture},
- semester:{type:Number,requierd:ture},
- subject:{type:String,requierd:ture},
- pdf:{type:String,requierd:ture}
+  courseName: { type: String, required: true }, // Fixed: "requierd" -> "required"
+  semester: { type: Number, required: true },   // Fixed: "requierd" -> "required"
+  subject: { type: String, required: true },    // Fixed: "requierd" -> "required"
+  fileType: { 
+    type: String, 
+    enum: ['PDF', 'YouTubeLink', 'ExternalLink'], 
+    default: 'PDF'  
+  },
+  link: { type: String, required: true }        
 }, { timestamps: true });
 
 export default mongoose.models.Resource || mongoose.model('Resource', resourceSchema);

@@ -13,50 +13,50 @@ export const POST = async (req) => {
     console.log('✅ API: Connected to database');
 
     // 2. Get Authorization header
-    const authHeader = req.headers.get('authorization');
-    if (!authHeader) {
-      return new Response(
-        JSON.stringify({ message: 'Authorization header missing' }),
-        { status: 401 }
-      );
-    }
+    // const authHeader = req.headers.get('authorization');
+    // if (!authHeader) {
+    //   return new Response(
+    //     JSON.stringify({ message: 'Authorization header missing' }),
+    //     { status: 401 }
+    //   );
+    // }
 
-    const token = authHeader.split(' ')[1];
-    if (!token) {
-      return new Response(
-        JSON.stringify({ message: 'Token missing' }),
-        { status: 401 }
-      );
-    }
+    // const token = authHeader.split(' ')[1];
+    // if (!token) {
+    //   return new Response(
+    //     JSON.stringify({ message: 'Token missing' }),
+    //     { status: 401 }
+    //   );
+    // }
 
     // 3. Verify JWT
-    let decoded;
-    try {
-      decoded = jwt.verify(token, JWT_SECRET);
-      console.log('✅ JWT Verified:', decoded);
-    } catch (err) {
-      return new Response(
-        JSON.stringify({ message: 'Invalid or expired token' }),
-        { status: 403 }
-      );
-    }
+    // let decoded;
+    // try {
+    //   decoded = jwt.verify(token, JWT_SECRET);
+    //   console.log('✅ JWT Verified:', decoded);
+    // } catch (err) {
+    //   return new Response(
+    //     JSON.stringify({ message: 'Invalid or expired token' }),
+    //     { status: 403 }
+    //   );
+    // }
 
     // 4. Check if user is admin
-    if (decoded.role !== 'admin') {
-      return new Response(
-        JSON.stringify({ message: 'Access denied. Admins only.' }),
-        { status: 403 }
-      );
-    }
+    // if (decoded.role !== 'admin') {
+    //   return new Response(
+    //     JSON.stringify({ message: 'Access denied. Admins only.' }),
+    //     { status: 403 }
+    //   );
+    // }
 
     // 5. Parse request body
     const body = await req.json();
     console.log('📥 Received payload:', body);
 
-    const { title, type, youtubeUrl, fileUrl } = body;
+    const {  courseName, semester, subject, fileType, link } = body;
 
     // 6. Validate required fields
-    if (!title || !type) {
+    if (!subject || !link||!fileType ||!courseName ||!semester) {
       return new Response(
         JSON.stringify({ message: 'Title and type are required' }),
         { status: 400 }
@@ -64,18 +64,25 @@ export const POST = async (req) => {
     }
 
     // 7. Create new resource
-    const resource = new Resource({
-      title,
-      type,
-      youtubeUrl: type === 'video' ? youtubeUrl : undefined,
-      fileUrl: ['pdf', 'pyq', 'link'].includes(type) ? fileUrl : undefined,
-      uploadedBy: decoded.id,
-    });
+    // const resource = new Resource({
+    //   courseName,
+    //  semester,
+    //   subject,
+    //   fileType: ['PDF', 'YouTubeLink', 'ExternalLink'].includes(type) ? fileUrl : undefined,
+    //   link,
+    // });
 
     // 8. Save to MongoDB
     let savedResource;
     try {
-      savedResource = await resource.save();
+      // savedResource = await resource.save();
+      savedResource = await Resource.create({
+        courseName,
+        semester,
+        subject,
+        fileType,
+        link,
+      });
       console.log('✅ Resource saved to MongoDB:', savedResource);
     } catch (saveError) {
       console.error('❌ DB Save Error:', saveError);
