@@ -1,5 +1,9 @@
+"use client"
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import { createContext } from "react";
+
+export const useSemester=createContext();
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -17,13 +21,16 @@ export const metadata = {
 };
 
 export default function RootLayout({ children }) {
+  const [semester, setSemester] = useState(null);
   return (
     <html lang="en">
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
+        <useSemester.Provider value={{semester,setSemester}}>
         {children}
-      </body>
+        </useSemester.Provider>
+      </body> 
     </html>
   );
 }
