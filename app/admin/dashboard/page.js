@@ -328,7 +328,46 @@ export default function AdminDashboard() {
         required
       />
     </div>
+         <div className="bg-black/40 backdrop-blur-sm border border-purple-500/20 rounded-3xl p-8">
+  <div className="flex items-center mb-6">
+    <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl flex items-center justify-center mr-4">
+      <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+      </svg>
+    </div>
+    <h3 className="text-xl font-semibold text-white">Upload New Resource</h3>
+  </div>
 
+  <form onSubmit={handleSubmit} className="space-y-6">
+    <div>
+      <label className="block text-sm font-medium text-gray-300 mb-2">Subject</label>
+      <input
+        type="text"
+        placeholder="e.g., Database Management Systems"
+        value={uploadData.subject}
+        onChange={(e) => setUploadData({ ...uploadData, subject: e.target.value })}
+        className="w-full px-4 py-3 bg-black/60 border border-gray-600 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
+        required
+      />
+    </div>
+
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div>
+        <label className="block text-sm font-medium text-gray-300 mb-2">Course</label>
+        <select
+          value={uploadData.courseName}
+          onChange={(e) => setUploadData({ ...uploadData, courseName: e.target.value })}
+          className="w-full px-4 py-3 bg-black/60 border border-gray-600 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+          required
+        >
+          <option value="">Select Course</option>
+          {courses.map((course) => (
+            <option key={course.code} value={course.name}>
+              {course.name}
+            </option>
+          ))}
+        </select>
+      </div>
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
       <div>
         <label className="block text-sm font-medium text-gray-300 mb-2">Course</label>
@@ -364,6 +403,23 @@ export default function AdminDashboard() {
         </select>
       </div>
     </div>
+      <div>
+        <label className="block text-sm font-medium text-gray-300 mb-2">Semester</label>
+        <select
+          value={uploadData.semester}
+          onChange={(e) => setUploadData({ ...uploadData, semester: parseInt(e.target.value) })}
+          className="w-full px-4 py-3 bg-black/60 border border-gray-600 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+          required
+        >
+          <option value="">Select Semester</option>
+          {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((sem) => (
+            <option key={sem} value={sem}>
+              Semester {sem}
+            </option>
+          ))}
+        </select>
+      </div>
+    </div>
 
     <div>
       <label className="block text-sm font-medium text-gray-300 mb-2">Resource Type</label>
@@ -378,7 +434,52 @@ export default function AdminDashboard() {
         <option value="ExternalLink">External Link</option>
       </select>
     </div>
+    <div>
+      <label className="block text-sm font-medium text-gray-300 mb-2">Resource Type</label>
+      <select
+        value={uploadData.fileType}
+        onChange={(e) => setUploadData({ ...uploadData, fileType: e.target.value, link: '' })} // Reset link when type changes
+        className="w-full px-4 py-3 bg-black/60 border border-gray-600 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+        required
+      >
+        <option value="PDF">PDF Notes</option>
+        <option value="YouTubeLink">YouTube Video</option>
+        <option value="ExternalLink">External Link</option>
+      </select>
+    </div>
 
+    {/* PDF Upload */}
+    {uploadData.fileType === 'PDF' && (
+      <div>
+        <label className="block text-sm font-medium text-gray-300 mb-2">Upload PDF File</label>
+        <input
+          type="file"
+          accept=".pdf"
+          onChange={handleFileChange}
+          className="w-full px-4 py-3 bg-black/60 border border-gray-600 rounded-xl text-white file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-purple-500 file:text-white hover:file:bg-purple-600"
+          required={!uploadedUrl}
+        />
+        {uploading && (
+          <div className="flex items-center mt-2 text-blue-400">
+            <svg className="animate-spin -ml-1 mr-2 h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            Uploading...
+          </div>
+        )}
+        {uploadedUrl && (
+          <div className="flex items-center mt-2 text-green-400">
+            <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            </svg>
+            File uploaded successfully!
+          </div>
+        )}
+        {/* Store uploaded file URL in `link` */}
+        <input type="hidden" name="link" value={uploadedUrl || uploadData.link} required />
+      </div>
+    )}
     {/* PDF Upload */}
     {uploadData.fileType === 'PDF' && (
       <div>
@@ -432,7 +533,46 @@ export default function AdminDashboard() {
         />
       </div>
     )}
+    {/* YouTube or External Link */}
+    {(uploadData.fileType === 'YouTubeLink' || uploadData.fileType === 'ExternalLink') && (
+      <div>
+        <label className="block text-sm font-medium text-gray-300 mb-2">
+          {uploadData.fileType === 'YouTubeLink' ? 'YouTube URL' : 'External Link'}
+        </label>
+        <input
+          type="url"
+          placeholder={
+            uploadData.fileType === 'YouTubeLink'
+              ? 'https://youtube.com/watch?v=...'
+              : 'https://example.com/resource'
+          }
+          value={uploadData.link}
+          onChange={(e) => setUploadData({ ...uploadData, link: e.target.value })}
+          className="w-full px-4 py-3 bg-black/60 border border-gray-600 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
+          required
+        />
+      </div>
+    )}
 
+    <button
+      type="submit"
+      disabled={uploading}
+      className="w-full bg-gradient-to-r from-purple-500 to-pink-500 text-white py-3 rounded-xl font-medium hover:shadow-lg hover:shadow-purple-500/25 transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed disabled:transform-none transform hover:-translate-y-0.5"
+    >
+      {uploading ? (
+        <span className="flex items-center justify-center">
+          <svg className="animate-spin -ml-1 mr-2 h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+          Uploading...
+        </span>
+      ) : (
+        'Upload Resource'
+      )}
+    </button>
+  </form>
+</div>
     <button
       type="submit"
       disabled={uploading}
