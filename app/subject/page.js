@@ -14,7 +14,7 @@ function Subject() {
 
     const fetchSubject = async () => {
         try {
-            const res=await fetch();
+            const res=await fetch('/api/resource');
         const data=await res.json();
         if(res.ok){
                 setSubject(data);
