@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 export default function AdminDashboard() {
   const [user, setUser] = useState(null);
   const [courses, setCourses] = useState([]);
+  const [option, setOption] = useState(null)
   const [uploadData, setUploadData] = useState({
     subject: '',
     courseName: '',
@@ -274,6 +275,26 @@ export default function AdminDashboard() {
     }
   };
 
+ 
+  useEffect(() => {
+    if (!uploadData.courseName) {
+      setOption([]); 
+      return;
+    }
+
+    const course = courses.find(
+      (item) => item.courseName === uploadData.courseName
+    );
+
+    if (course) {
+      const semesterArray = Array.from({ length: course.semester }, (_, i) => i + 1);
+      setOption(semesterArray);
+    } else {
+      setOption([]);
+    }
+  }, [uploadData.courseName, courses]);
+
+
   if (!user)
     return (
       <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
@@ -422,9 +443,10 @@ export default function AdminDashboard() {
                     }
                     className="w-full px-4 py-3 bg-black/60 border border-gray-600 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
                     required
+                   
                   >
                     <option value="">Select Semester</option>
-                    {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((sem) => (
+                    {option.map((sem) => (
                       <option key={sem} value={sem}>
                         Semester {sem}
                       </option>
