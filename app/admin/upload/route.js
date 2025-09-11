@@ -29,9 +29,9 @@ export const POST = async (req) => {
 
     // Parse body
     const body = await req.json();
-    const { title, courseCode, type, youtubeUrl, fileUrl } = body;
+    const { subject,courseName,semester,fileType,link } = body;
 
-    if (!title || !courseCode || !type) {
+    if (!subject ||!link ||!fileType ||!courseName ||!semester) {
       return new Response(
         JSON.stringify({ message: 'Title, course, and type are required' }),
         { status: 400 }
@@ -39,7 +39,7 @@ export const POST = async (req) => {
     }
 
     // Find course by code
-    const course = await Course.findOne({ code: courseCode.toLowerCase() });
+    const course = await Course.findOne({ code: courseName.toLowerCase() });
     if (!course) {
       return new Response(
         JSON.stringify({ message: 'Course not found' }),
@@ -47,14 +47,22 @@ export const POST = async (req) => {
       );
     }
 
+    const exists =await Resource.findOne({courseName, semester ,subject});
+
+    if (exists) {
+      return new Response(
+        JSON.stringify({ message: 'Resource with this combination already exists' }),
+        { status: 409 }
+      );
+    }
+
     // Create resource
     const resource = new Resource({
-      title,
-      type,
-      youtubeUrl,
-      fileUrl,
-      course: course._id,
-      uploadedBy: decoded.id,
+     subject,
+     courseName,
+     semester,
+     fileType,
+     link,
     });
 
     const saved = await resource.save();
