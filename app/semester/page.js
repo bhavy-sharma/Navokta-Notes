@@ -22,7 +22,8 @@ export default function Semester() {
   }
 
   const handleSemesterSelect = (semester) => {
-    router.push(`/semester/${encodeURIComponent(courseName)}/${semester}`);
+   router.push(`/subject?courseName=${encodeURIComponent(courseName)}&semester=${semester}`);
+    
   };
 
   const handleBack = () => {
