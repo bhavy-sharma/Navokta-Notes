@@ -30,6 +30,12 @@ function Subject() {
             items.courseName === course &&
             items.semester === Number(semesterNumber)
     );
+
+    const handleDowlode=(item)=>{
+        //file dowlode ka kaam 
+
+        //update api call to incrrease download count
+    }
   return (
     <>
        <div className="w-full min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-800 text-white flex flex-col items-center py-10">
@@ -47,7 +53,7 @@ function Subject() {
                             className="w-64 h-40 bg-gradient-to-r from-blue-600 to-blue-500 rounded-2xl shadow-lg
                                        flex items-center justify-center text-xl font-semibold cursor-pointer
                                        transform transition-all duration-300 hover:scale-110 hover:from-green-500 hover:to-green-400"
-                                       
+                       onClick={()=>handleDowlode(item)}                
                         >
                             {item.subject}
                         </div>

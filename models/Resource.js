@@ -9,7 +9,8 @@ const resourceSchema = new mongoose.Schema({
     enum: ['PDF', 'YouTubeLink', 'ExternalLink'], 
     default: 'PDF'  
   },
-  link: { type: String, required: true }        
+  link: { type: String, required: true },
+  dowloadedCount: { type: Number, default: 0 }    // Added: "default: 0" to track number of downloads
 }, { timestamps: true });
 
 export default mongoose.models.Resource || mongoose.model('Resource', resourceSchema);

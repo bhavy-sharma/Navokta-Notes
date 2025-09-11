@@ -63,6 +63,7 @@ export const POST = async (req) => {
      semester,
      fileType,
      link,
+     dowloadedCount
     });
 
     const saved = await resource.save();
@@ -81,3 +82,7 @@ export const POST = async (req) => {
     );
   }
 };
+
+//get resourses
+
+//update resourse dowload count only 
