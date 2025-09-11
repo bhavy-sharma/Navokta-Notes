@@ -16,30 +16,29 @@ export default function Subject() {
   }, [course, semesterNumber]);
 
   const fetchSubject = async () => {
-    setLoading(true);
+  setLoading(true);
 
-    try {
-      const res = await fetch(`/api/route`);
+  try {
+    const res = await fetch(`/api/resource?courseName=${encodeURIComponent(course)}&semester=${semesterNumber}`);
 
-      if (!res.ok) {
-        throw new Error(`HTTP ${res.status}: ${res.statusText}`);
-      }
-
-      const data = await res.json();
-
-
-      if (data.success && Array.isArray(data.data)) {
-        setSubject(data.data);
-      } else {
-        throw new Error('Invalid API response format');
-      }
-    } catch (error) {
-      console.error('Failed to load subjects:', error.message);
-      setSubject([]); 
-    } finally {
-      setLoading(false);
+    if (!res.ok) {
+      throw new Error(`HTTP ${res.status}: ${res.statusText}`);
     }
-  };
+
+    const data = await res.json();
+
+    if (data.success && Array.isArray(data.data)) {
+      setSubject(data.data); // ✅ Set the array inside data.data
+    } else {
+      throw new Error('Invalid response format');
+    }
+  } catch (error) {
+    console.error('Failed to load subjects:', error.message); // ✅ fixed: 'error', not 'err'
+    setSubject([]); // Reset on failure
+  } finally {
+    setLoading(false);
+  }
+};
 
 
   const handleDownload = (item) => {

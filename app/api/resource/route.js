@@ -1,49 +1,56 @@
-// app/api/courses/route.js
+// app/api/resource/route.js
 
 import { NextResponse } from 'next/server';
 import mongoose from 'mongoose';
-import Resource from '@/models/Resource'; 
+import Resource from '@/models/Resource';
 
 async function connectDB() {
   if (mongoose.connections[0].readyState) return;
   await mongoose.connect(process.env.MONGODB_URI);
 }
 
-export async function GET() {
+export async function GET(request) {
   try {
     await connectDB();
 
-    const courses = await Resource.aggregate([
-      {
-        $group: {
-          _id: '$courseName',
-          semester: { $first: '$semester' },
-          subject: { $first: '$subject' },
-          count: { $sum: 1 }
-        }
-      },
-      {
-        $project: {
-          _id: 0,
-          courseName: '$_id',
-          semester: 1,
-          description: '$subject' 
-        }
-      },
-      {
-        $sort: { courseName: 1 } 
-      }
-    ]);
+    // Extract query params
+    const url = new URL(request.url);
+    const courseName = url.searchParams.get('courseName');
+    const semester = url.searchParams.get('semester');
 
+    // Validate required params
+    if (!courseName || !semester) {
+      return NextResponse.json(
+        { success: false, error: 'Missing courseName or semester parameter' },
+        { status: 400 }
+      );
+    }
+
+    const semesterNum = parseInt(semester);
+    if (isNaN(semesterNum)) {
+      return NextResponse.json(
+        { success: false, error: 'semester must be a valid number' },
+        { status: 400 }
+      );
+    }
+
+    // Fetch resources matching courseName and semester
+    const resources = await Resource.find({
+      courseName: courseName,
+      semester: semesterNum
+    })
+      .select('_id courseName semester subject fileType link dowloadedCount')
+      .sort({ subject: 1 })
+      .lean(); // Faster JSON serialization
 
     return NextResponse.json({
       success: true,
-      data: courses,
-      count: courses.length
+      data: resources, // ← Array of resource objects
+      count: resources.length
     }, { status: 200 });
 
   } catch (error) {
-    console.error('API /courses error:', error);
+    console.error('API /api/resource error:', error);
 
     if (error.message.includes('Failed to connect')) {
       return NextResponse.json(
@@ -53,7 +60,7 @@ export async function GET() {
     }
 
     return NextResponse.json(
-      { success: false, error: 'Failed to fetch courses' },
+      { success: false, error: 'Failed to fetch resources' },
       { status: 500 }
     );
   }
