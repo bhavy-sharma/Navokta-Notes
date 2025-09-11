@@ -1,13 +1,17 @@
 "use client";
 
-import { useContext, useEffect, useState } from 'react';
+import { createContext, useContext, useEffect, useState } from 'react';
 // import { useSemester } from '../layout';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+
+// export const useSemester=createContext();
 
 export default function CoursesPage() {
+const router = useRouter();
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
-  // const {setSemester,semester}=useContext(useSemester)
+  const [semester,setSemester] = useState(null);
 
 
   useEffect(() => {
@@ -42,7 +46,10 @@ export default function CoursesPage() {
 
   const handleCourseSelect = (course) => {
       setSemester(course);
-       window.location.href = `/semester`;
+    router.push(`/semester?courseName=${encodeURIComponent(course.courseName)}&sem=${course.semester}`);
+
+
+      
   };
 
   // const handleSemesterSelect = (semester) => {
