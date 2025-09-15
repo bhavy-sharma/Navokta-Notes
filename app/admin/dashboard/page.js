@@ -27,14 +27,14 @@ export default function AdminDashboard() {
   const router = useRouter();
 
   // 👇 Redirect if not authenticated or not admin
-  useEffect(() => {
-    if (status === 'authenticated') {
-      if (session.user.role !== 'admin') {
-        alert('Access denied. Admins only.');
-        router.push('/');
-      }
-    }
-  }, [session, status, router]);
+  // useEffect(() => {
+  //   if (status === 'authenticated') {
+  //     if (session.user.role !== 'admin') {
+  //       alert('Access denied. Admins only.');
+  //       router.push('/');
+  //     }
+  //   }
+  // }, [session, status, router]);
 
   // 👇 Fetch courses once authenticated
   useEffect(() => {
@@ -82,7 +82,7 @@ export default function AdminDashboard() {
     formData.append('file', file);
 
     try {
-      const res = await fetch('/api/upload', {
+      const res = await fetch('/api/admin/upload', {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${session.accessToken}`, // 👈 Send token
@@ -301,22 +301,22 @@ export default function AdminDashboard() {
   }
 
   // 👇 If authenticated but not admin (extra safety)
-  if (session.user.role !== 'admin') {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 p-6">
-        <div className="bg-black/40 backdrop-blur-sm border border-red-500/20 rounded-3xl p-8 text-center max-w-md">
-          <h2 className="text-2xl font-bold text-red-400 mb-4">🚫 Access Denied</h2>
-          <p className="text-gray-300">You do not have permission to access the admin dashboard.</p>
-          <button
-            onClick={() => router.push('/')}
-            className="mt-6 px-6 py-3 bg-gray-600 text-white rounded-xl font-medium hover:bg-gray-700 transition-colors"
-          >
-            Go Home
-          </button>
-        </div>
-      </div>
-    );
-  }
+  // if (session.user.role !== 'admin') {
+  //   return (
+  //     <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 p-6">
+  //       <div className="bg-black/40 backdrop-blur-sm border border-red-500/20 rounded-3xl p-8 text-center max-w-md">
+  //         <h2 className="text-2xl font-bold text-red-400 mb-4">🚫 Access Denied</h2>
+  //         <p className="text-gray-300">You do not have permission to access the admin dashboard.</p>
+  //         <button
+  //           onClick={() => router.push('/')}
+  //           className="mt-6 px-6 py-3 bg-gray-600 text-white rounded-xl font-medium hover:bg-gray-700 transition-colors"
+  //         >
+  //           Go Home
+  //         </button>
+  //       </div>
+  //     </div>
+  //   );
+  // }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">

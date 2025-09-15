@@ -17,12 +17,19 @@ export const authOptions = {
   ],
   callbacks: {
     async session({ session, token }) {
+      session.user.role = token.role;
       session.accessToken = token.accessToken; // 👈 Access Token session mein bhej do
       return session;
     },
     async jwt({ token, account }) {
       if (account) {
+
         token.accessToken = account.access_token; // 👈 JWT mein bhi save karo
+        if (profile?.email === "codershab@gmail.com") {
+        token.role = "admin";
+      } else {
+        token.role = "user"; // ya skip kar do
+      }
       }
       return token;
     },

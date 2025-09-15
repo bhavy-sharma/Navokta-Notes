@@ -16,8 +16,8 @@ export async function POST(request) {
       );
     }
 
-    const token = authHeader.split(' ')[1];
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    // const token = authHeader.split(' ')[1];
+    // const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
     // Optional: Verify admin role if stored in token
     // if (decoded.role !== 'admin') {
