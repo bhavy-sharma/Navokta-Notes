@@ -1,117 +1,65 @@
-// app/api/admin/upload/route.js
-import { connectDB } from '@/lib/dbConnect';
-import Resource from '@/models/Resource';
-import jwt from 'jsonwebtoken';
+import { google } from "googleapis";
+import { NextResponse } from "next/server";
+import { Readable } from "stream";
+import { OAuth2Client } from "google-auth-library"; // 👈 NAYA IMPORT!
 
-// Use environment variable or fallback
-const JWT_SECRET = process.env.JWT_SECRET || 'navokta-notes-admin-secret';
+export const runtime = 'nodejs'; // 👈 ZAROORI!
 
-export const POST = async (req) => {
+export async function POST(req) {
   try {
-    // 1. Connect to DB
-    await connectDB();
-    console.log('✅ API: Connected to database');
-
-    // 2. Get Authorization header
-    // const authHeader = req.headers.get('authorization');
-    // if (!authHeader) {
-    //   return new Response(
-    //     JSON.stringify({ message: 'Authorization header missing' }),
-    //     { status: 401 }
-    //   );
-    // }
-
-    // const token = authHeader.split(' ')[1];
-    // if (!token) {
-    //   return new Response(
-    //     JSON.stringify({ message: 'Token missing' }),
-    //     { status: 401 }
-    //   );
-    // }
-
-    // 3. Verify JWT
-    // let decoded;
-    // try {
-    //   decoded = jwt.verify(token, JWT_SECRET);
-    //   console.log('✅ JWT Verified:', decoded);
-    // } catch (err) {
-    //   return new Response(
-    //     JSON.stringify({ message: 'Invalid or expired token' }),
-    //     { status: 403 }
-    //   );
-    // }
-
-    // 4. Check if user is admin
-    // if (decoded.role !== 'admin') {
-    //   return new Response(
-    //     JSON.stringify({ message: 'Access denied. Admins only.' }),
-    //     { status: 403 }
-    //   );
-    // }
-
-    // 5. Parse request body
-    const body = await req.json();
-    console.log('📥 Received payload:', body);
-
-    const {  courseName, semester, subject, fileType, link } = body;
-
-    // 6. Validate required fields
-    if (!subject || !link||!fileType ||!courseName ||!semester) {
-      return new Response(
-        JSON.stringify({ message: 'Title and type are required' }),
-        { status: 400 }
-      );
+    const authHeader = req.headers.get("authorization");
+    if (!authHeader) {
+      return NextResponse.json({ error: "No access token" }, { status: 401 });
     }
 
-    // 7. Create new resource
-    // const resource = new Resource({
-    //   courseName,
-    //  semester,
-    //   subject,
-    //   fileType: ['PDF', 'YouTubeLink', 'ExternalLink'].includes(type) ? fileUrl : undefined,
-    //   link,
-    // });
+    const accessToken = authHeader.split(" ")[1];
 
-    // 8. Save to MongoDB
-    let savedResource;
-    try {
-      // savedResource = await resource.save();
-      savedResource = await Resource.create({
-        courseName,
-        semester,
-        subject,
-        fileType,
-        link,
-      });
-      console.log('✅ Resource saved to MongoDB:', savedResource);
-    } catch (saveError) {
-      console.error('❌ DB Save Error:', saveError);
-      return new Response(
-        JSON.stringify({
-          message: 'Failed to save resource to database',
-          error: saveError.message,
-        }),
-        { status: 500 }
-      );
+    // ✅ SAHI TARIKA: OAuth2Client banayein aur token daalein
+    const oauth2Client = new OAuth2Client();
+    oauth2Client.setCredentials({ access_token: accessToken }); // 👈 YEH SAHI HAI!
+
+    const drive = google.drive({
+      version: "v3",
+      auth: oauth2Client, // 👈 Ab yeh object hai — jisme request() function hai!
+    });
+
+    const formData = await req.formData();
+    const file = formData.get("file");
+
+    if (!file) {
+      return NextResponse.json({ error: "No file provided" }, { status: 400 });
     }
 
-    // 9. Return success
-    return new Response(
-      JSON.stringify({
-        message: 'Resource uploaded successfully',
-        resource: savedResource,
-      }),
-      { status: 201 }
-    );
+    const buffer = Buffer.from(await file.arrayBuffer());
+
+    const readableStream = new Readable();
+    readableStream.push(buffer);
+    readableStream.push(null);
+
+    const response = await drive.files.create({
+      requestBody: {
+        name: file.name,
+        mimeType: file.type || "application/pdf",
+      },
+      media: {
+        mimeType: file.type || "application/pdf",
+        body: readableStream,
+      },
+      fields: "id, webViewLink",
+      uploadType: "multipart",
+    });
+
+    return NextResponse.json({ file: response.data });
   } catch (error) {
-    // 10. Catch any unexpected server errors
-    console.error('❌ Unexpected Server Error:', error);
-    return new Response(
-      JSON.stringify({
-        message: 'Internal Server Error',
-        error: error.message,
-      }),
+    console.error("Upload error:", error);
+    console.error("Error message:", error.message);
+    console.error("Error stack:", error.stack);
+    return NextResponse.json(
+      {
+        error: "Upload failed",
+        details: error instanceof Error ? error.message : String(error),
+      },
       { status: 500 }
     );
   }
-};
+}

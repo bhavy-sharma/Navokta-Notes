@@ -2,11 +2,12 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useSession, signIn } from 'next-auth/react'; // 👈 Added
 
 export default function AdminDashboard() {
-  const [user, setUser] = useState(null);
+  const { data: session, status } = useSession(); // 👈 Replaces localStorage auth
   const [courses, setCourses] = useState([]);
-  const [option, setOption] = useState(null)
+  const [option, setOption] = useState([]);
   const [uploadData, setUploadData] = useState({
     subject: '',
     courseName: '',
@@ -14,6 +15,7 @@ export default function AdminDashboard() {
     fileType: 'PDF',
     link: '',
   });
+  const [file, setFile] = useState(null); // 👈 For PDF upload
   const [newCourse, setNewCourse] = useState({
     courseName: '',
     semester: '',
@@ -24,86 +26,77 @@ export default function AdminDashboard() {
   const [uploadedUrl, setUploadedUrl] = useState('');
   const router = useRouter();
 
+  // 👇 Redirect if not authenticated or not admin
   useEffect(() => {
-    const userData = localStorage.getItem('navokta_user');
-    const token = localStorage.getItem('navokta_token');
-
-    if (!userData || !token) {
-      router.push('/');
-      return;
+    if (status === 'authenticated') {
+      if (session.user.role !== 'admin') {
+        alert('Access denied. Admins only.');
+        router.push('/');
+      }
     }
+  }, [session, status, router]);
 
-    let parsedUser;
-    try {
-      parsedUser = JSON.parse(userData);
-    } catch (err) {
-      localStorage.removeItem('navokta_user');
-      localStorage.removeItem('navokta_token');
-      router.push('/');
-      return;
+  // 👇 Fetch courses once authenticated
+  useEffect(() => {
+    if (status === 'authenticated' && session.user.role === 'admin') {
+      fetchCourses();
     }
-
-    if (parsedUser.role !== 'admin') {
-      alert('Access denied');
-      router.push('/');
-    } else {
-      setUser(parsedUser);
-    }
-
-    fetchCourses();
-  }, [router]);
+  }, [status, session]);
 
   const fetchCourses = async () => {
     try {
-      const res = await fetch('/api/courses');
+      const res = await fetch('/api/courses', {
+        headers: {
+          Authorization: `Bearer ${session.accessToken}`, // 👈 Secure API call
+        },
+      });
       const data = await res.json();
       if (res.ok) setCourses(data);
     } catch (err) {
+      console.error('Failed to load courses:', err);
       alert('Failed to load courses');
     }
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem('navokta_token');
-    localStorage.removeItem('navokta_user');
-    router.push('/');
-  };
+  // 👇 No more localStorage logout — use next-auth signOut (you can add it if needed)
+  // For now, we'll just redirect to home. You can import `signOut` if you want to invalidate session.
 
-  // Handle file input
   const handleFileChange = (e) => {
-    const file = e.target.files[0];
-    setUploadData((prev) => ({ ...prev, file }));
+    const selectedFile = e.target.files?.[0];
+    if (selectedFile && !selectedFile.name.toLowerCase().endsWith('.pdf')) {
+      alert('Please select a PDF file only!');
+      setFile(null);
+      return;
+    }
+    setFile(selectedFile);
+    // Optional: clear uploadedUrl if new file selected
+    setUploadedUrl('');
   };
 
-  // Upload file to Cloudinary
-  const handleCloudinaryUpload = async () => {
-    const file = uploadData.file;
+  // 👇 Upload to your /api/upload endpoint (Google Drive or whatever backend you have)
+  const handleApiUpload = async () => {
     if (!file) return null;
 
     setUploading(true);
     const formData = new FormData();
     formData.append('file', file);
-    formData.append('upload_preset', 'notes_upload');
-    formData.append('folder', 'navokta_notes');
 
     try {
-      const res = await fetch(
-        `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/raw/upload`,
-        {
-          method: 'POST',
-          body: formData,
-        }
-      );
+      const res = await fetch('/api/upload', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${session.accessToken}`, // 👈 Send token
+        },
+        body: formData,
+      });
 
       const data = await res.json();
-      setUploading(false);
 
-      if (data.secure_url) {
-        setUploadedUrl(data.secure_url);
-        return data.secure_url;
-      } else {
-        throw new Error(data.error?.message || 'Upload failed');
-      }
+      if (!res.ok) throw new Error(data.error || 'Upload failed');
+
+      setUploading(false);
+      setUploadedUrl(data.file.webViewLink); // or data.secure_url if Cloudinary
+      return data.file.webViewLink;
     } catch (err) {
       setUploading(false);
       alert('Upload failed: ' + err.message);
@@ -111,20 +104,30 @@ export default function AdminDashboard() {
     }
   };
 
-  // Submit resource
+  // 👇 Submit resource (PDF, YouTube, or External)
   const handleSubmit = async (e) => {
     e.preventDefault();
-    let fileUrl = uploadedUrl;
 
-    // If file selected but not uploaded yet, upload it
-    if (uploadData.file && !uploadedUrl) {
-      fileUrl = await handleCloudinaryUpload();
-      if (!fileUrl) return;
+    if (!session) {
+      alert('Please log in first!');
+      return;
     }
 
-    // For YouTube/External, use the link from input. For PDF, use uploaded URL.
-    const finalLink =
-      uploadData.fileType === 'PDF' ? fileUrl : uploadData.link;
+    let finalLink = uploadData.link;
+
+    if (uploadData.fileType === 'PDF') {
+      if (!file && !uploadedUrl) {
+        alert('Please select a PDF file!');
+        return;
+      }
+
+      if (file && !uploadedUrl) {
+        finalLink = await handleApiUpload();
+        if (!finalLink) return;
+      } else if (uploadedUrl) {
+        finalLink = uploadedUrl;
+      }
+    }
 
     if (!finalLink) {
       alert('Please provide a valid link or upload a file.');
@@ -140,18 +143,11 @@ export default function AdminDashboard() {
     };
 
     try {
-      const token = localStorage.getItem('navokta_token');
-      if (!token) {
-        alert('Authentication token not found. Please login again.');
-        router.push('/auth/login');
-        return;
-      }
-
       const res = await fetch('/api/admin/upload', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${session.accessToken}`, // 👈 Use session token
         },
         body: JSON.stringify(payload),
       });
@@ -159,7 +155,6 @@ export default function AdminDashboard() {
       const result = await res.json();
       if (res.ok) {
         alert('✅ Resource uploaded successfully!');
-        // Reset form
         setUploadData({
           subject: '',
           courseName: '',
@@ -168,7 +163,7 @@ export default function AdminDashboard() {
           link: '',
         });
         setUploadedUrl('');
-        // Optionally clear file input
+        setFile(null);
         const fileInput = document.querySelector('input[type="file"]');
         if (fileInput) fileInput.value = '';
       } else {
@@ -188,18 +183,11 @@ export default function AdminDashboard() {
     }
 
     try {
-      const token = localStorage.getItem('navokta_token');
-      if (!token) {
-        alert('Authentication token not found. Please login again.');
-        router.push('/auth/login');
-        return;
-      }
-
       const res = await fetch('/api/admin/add-course', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${session.accessToken}`,
         },
         body: JSON.stringify({
           courseName: newCourse.courseName,
@@ -212,7 +200,7 @@ export default function AdminDashboard() {
       if (res.ok) {
         alert('✅ Semester added successfully!');
         setNewCourse({ courseName: '', semester: '', description: '' });
-        fetchCourses(); // Refresh list
+        fetchCourses();
       } else {
         alert('Error: ' + result.message);
       }
@@ -232,18 +220,11 @@ export default function AdminDashboard() {
     }
 
     try {
-      const token = localStorage.getItem('navokta_token');
-      if (!token) {
-        alert('Authentication token not found. Please login again.');
-        router.push('/auth/login');
-        return;
-      }
-
       const response = await fetch('/api/admin/add-admin', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${session.accessToken}`,
         },
         body: JSON.stringify({ name, email, password }),
       });
@@ -258,9 +239,8 @@ export default function AdminDashboard() {
 
         if (data.error === 'invalid_token') {
           errorMessage = 'Your session has expired. Please login again.';
-          localStorage.removeItem('navokta_token');
-          localStorage.removeItem('navokta_user');
-          router.push('/auth/login');
+          // next-auth will handle session — no need to clear localStorage
+          router.push('/');
         } else if (data.error === 'insufficient_permissions') {
           errorMessage = 'You do not have permission to add admins.';
         } else if (data.error === 'user_exists') {
@@ -275,10 +255,9 @@ export default function AdminDashboard() {
     }
   };
 
- 
   useEffect(() => {
     if (!uploadData.courseName) {
-      setOption([]); 
+      setOption([]);
       return;
     }
 
@@ -294,13 +273,50 @@ export default function AdminDashboard() {
     }
   }, [uploadData.courseName, courses]);
 
-
-  if (!user)
+  // 👇 Handle loading state
+  if (status === 'loading') {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
-        Loading...
+        <p className="text-gray-400">Loading session...</p>
       </div>
     );
+  }
+
+  // 👇 Show login if not authenticated
+  if (status !== 'authenticated' || !session) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 p-6">
+        <div className="bg-black/40 backdrop-blur-sm border border-purple-500/20 rounded-3xl p-8 text-center max-w-md">
+          <h2 className="text-2xl font-bold text-white mb-4">🔒 Admin Access Required</h2>
+          <p className="text-gray-300 mb-6">Please log in with your admin account to access the dashboard.</p>
+          <button
+            onClick={() => signIn('google')}
+            className="px-6 py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-xl font-medium hover:shadow-lg hover:shadow-purple-500/25 transition-all"
+          >
+            Login with Google
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // 👇 If authenticated but not admin (extra safety)
+  if (session.user.role !== 'admin') {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 p-6">
+        <div className="bg-black/40 backdrop-blur-sm border border-red-500/20 rounded-3xl p-8 text-center max-w-md">
+          <h2 className="text-2xl font-bold text-red-400 mb-4">🚫 Access Denied</h2>
+          <p className="text-gray-300">You do not have permission to access the admin dashboard.</p>
+          <button
+            onClick={() => router.push('/')}
+            className="mt-6 px-6 py-3 bg-gray-600 text-white rounded-xl font-medium hover:bg-gray-700 transition-colors"
+          >
+            Go Home
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
@@ -316,12 +332,17 @@ export default function AdminDashboard() {
             </div>
             <div className="flex items-center space-x-4 mt-4 sm:mt-0">
               <div className="text-sm text-gray-300">
-                <span className="text-purple-300 font-medium">{user.name}</span>
+                <span className="text-purple-300 font-medium">{session.user.name}</span>
                 <span className="mx-2">•</span>
                 <span className="text-green-400">Online</span>
               </div>
+              {/* 👇 Optional: Add signOut if you want to invalidate session */}
               <button
-                onClick={handleLogout}
+                onClick={() => {
+                  // If you import signOut from 'next-auth/react', use it here
+                  // signOut({ callbackUrl: '/' });
+                  router.push('/'); // Simple redirect for now
+                }}
                 className="px-4 py-2 bg-red-500/20 text-red-300 rounded-lg hover:bg-red-500/30 transition-colors border border-red-500/30"
               >
                 Logout
@@ -339,7 +360,7 @@ export default function AdminDashboard() {
               <h2 className="text-2xl font-bold text-white mb-2">
                 Welcome back,{' '}
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400">
-                  {user.name}
+                  {session.user.name}
                 </span>
               </h2>
               <p className="text-gray-300 text-lg">
@@ -443,7 +464,6 @@ export default function AdminDashboard() {
                     }
                     className="w-full px-4 py-3 bg-black/60 border border-gray-600 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
                     required
-                   
                   >
                     <option value="">Select Semester</option>
                     {option.map((sem) => (
@@ -540,28 +560,28 @@ export default function AdminDashboard() {
               {/* YouTube or External Link */}
               {(uploadData.fileType === 'YouTubeLink' ||
                 uploadData.fileType === 'ExternalLink') && (
-                  <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-2">
-                      {uploadData.fileType === 'YouTubeLink'
-                        ? 'YouTube URL'
-                        : 'External Link'}
-                    </label>
-                    <input
-                      type="url"
-                      placeholder={
-                        uploadData.fileType === 'YouTubeLink'
-                          ? 'https://youtube.com/watch?v=...'
-                          : 'https://example.com/resource'
-                      }
-                      value={uploadData.link}
-                      onChange={(e) =>
-                        setUploadData({ ...uploadData, link: e.target.value })
-                      }
-                      className="w-full px-4 py-3 bg-black/60 border border-gray-600 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
-                      required
-                    />
-                  </div>
-                )}
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    {uploadData.fileType === 'YouTubeLink'
+                      ? 'YouTube URL'
+                      : 'External Link'}
+                  </label>
+                  <input
+                    type="url"
+                    placeholder={
+                      uploadData.fileType === 'YouTubeLink'
+                        ? 'https://youtube.com/watch?v=...'
+                        : 'https://example.com/resource'
+                    }
+                    value={uploadData.link}
+                    onChange={(e) =>
+                      setUploadData({ ...uploadData, link: e.target.value })
+                    }
+                    className="w-full px-4 py-3 bg-black/60 border border-gray-600 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    required
+                  />
+                </div>
+              )}
 
               <button
                 type="submit"
