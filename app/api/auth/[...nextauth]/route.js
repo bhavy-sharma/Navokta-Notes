@@ -10,28 +10,30 @@ export const authOptions = {
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
       authorization: {
         params: {
-          scope: "openid email profile https://www.googleapis.com/auth/drive.file", // 👈 YEH HAI MAGIC!
+          scope: "openid email profile https://www.googleapis.com/auth/drive.file",
         },
       },
     }),
   ],
   callbacks: {
-    async session({ session, token }) {
-      session.user.role = token.role;
-      session.accessToken = token.accessToken; // 👈 Access Token session mein bhej do
-      return session;
-    },
-    async jwt({ token, account }) {
-      if (account) {
+    async jwt({ token, account, user }) {
+      // ✅ First time login
+      if (account && user) {
+        token.accessToken = account.access_token;
 
-        token.accessToken = account.access_token; // 👈 JWT mein bhi save karo
-        if (profile?.email === "codershab@gmail.com") {
-        token.role = "admin";
-      } else {
-        token.role = "user"; // ya skip kar do
-      }
+        // ✅ Email ke basis pe role set
+        if (user.email === "codershab@gmail.com") {
+          token.role = "admin";
+        } else {
+          token.role = "user";
+        }
       }
       return token;
+    },
+    async session({ session, token }) {
+      session.user.role = token.role;
+      session.accessToken = token.accessToken; // 👈 frontend use karega
+      return session;
     },
   },
 };

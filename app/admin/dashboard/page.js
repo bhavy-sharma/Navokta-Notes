@@ -38,25 +38,28 @@ export default function AdminDashboard() {
 
   // 👇 Fetch courses once authenticated
   useEffect(() => {
-    if (status === 'authenticated' && session.user.role === 'admin') {
-      fetchCourses();
-    }
+    // if (status === 'authenticated' && session.user.role === 'admin') {   //ya line error da rahi ha 
+    //   fetchCourses();
+    // }
+    fetchCourses();
   }, [status, session]);
 
-  const fetchCourses = async () => {
-    try {
-      const res = await fetch('/api/courses', {
-        headers: {
-          Authorization: `Bearer ${session.accessToken}`, // 👈 Secure API call
-        },
-      });
-      const data = await res.json();
-      if (res.ok) setCourses(data);
-    } catch (err) {
-      console.error('Failed to load courses:', err);
-      alert('Failed to load courses');
-    }
-  };
+ const fetchCourses = async () => {
+  if (!session || !session.accessToken) return; // ✅ wait for session
+
+  try {
+    const res = await fetch('/api/courses', {
+      headers: {
+        Authorization: `Bearer ${session.accessToken}`,
+      },
+    });
+    const data = await res.json();
+    if (res.ok) setCourses(data);
+  } catch (err) {
+    console.error('Failed to load courses:', err);
+    alert('Failed to load courses');
+  }
+};
 
   // 👇 No more localStorage logout — use next-auth signOut (you can add it if needed)
   // For now, we'll just redirect to home. You can import `signOut` if you want to invalidate session.
@@ -74,105 +77,108 @@ export default function AdminDashboard() {
   };
 
   // 👇 Upload to your /api/upload endpoint (Google Drive or whatever backend you have)
-  const handleApiUpload = async () => {
-    if (!file) return null;
+ // Upload PDF to Google Drive and return the file URL
+const handleApiUpload = async () => {
+  if (!file) return null;
 
-    setUploading(true);
-    const formData = new FormData();
-    formData.append('file', file);
+  setUploading(true);
+  const formData = new FormData();
+  formData.append("file", file);
 
-    try {
-      const res = await fetch('/api/admin/upload', {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${session.accessToken}`, // 👈 Send token
-        },
-        body: formData,
-      });
+  try {
+    const res = await fetch("/api/admin/upload", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${session.accessToken}`, // DO NOT set Content-Type manually
+      },
+      body: formData, // Browser sets correct multipart/form-data
+    });
 
-      const data = await res.json();
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || "Upload failed");
 
-      if (!res.ok) throw new Error(data.error || 'Upload failed');
+    setUploadedUrl(data.file.webViewLink); // Update UI
+    return data.file.webViewLink; // Return to use in MongoDB
+  } catch (err) {
+    alert("Upload failed: " + err.message);
+    return null;
+  } finally {
+    setUploading(false);
+  }
+};
 
-      setUploading(false);
-      setUploadedUrl(data.file.webViewLink); // or data.secure_url if Cloudinary
-      return data.file.webViewLink;
-    } catch (err) {
-      setUploading(false);
-      alert('Upload failed: ' + err.message);
-      return null;
-    }
-  };
+// Submit resource metadata (PDF / YouTube / External) to MongoDB
+const handleSubmit = async (e) => {
+  e.preventDefault();
 
-  // 👇 Submit resource (PDF, YouTube, or External)
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  if (!session) {
+    alert("Please log in first!");
+    return;
+  }
 
-    if (!session) {
-      alert('Please log in first!');
+  let finalLink = uploadData.link;
+
+  // Handle PDF file upload
+  if (uploadData.fileType === "PDF") {
+    if (!file && !uploadedUrl) {
+      alert("Please select a PDF file!");
       return;
     }
 
-    let finalLink = uploadData.link;
-
-    if (uploadData.fileType === 'PDF') {
-      if (!file && !uploadedUrl) {
-        alert('Please select a PDF file!');
-        return;
-      }
-
-      if (file && !uploadedUrl) {
-        finalLink = await handleApiUpload();
-        if (!finalLink) return;
-      } else if (uploadedUrl) {
-        finalLink = uploadedUrl;
-      }
+    if (file && !uploadedUrl) {
+      finalLink = await handleApiUpload(); // Upload PDF & get URL
+      if (!finalLink) return;
+    } else if (uploadedUrl) {
+      finalLink = uploadedUrl; // Use already uploaded file URL
     }
+  }
+  console.log("ya finelLINk ha",finalLink)
 
-    if (!finalLink) {
-      alert('Please provide a valid link or upload a file.');
-      return;
-    }
+  if (!finalLink) {
+    alert("Please provide a valid link or upload a file.");
+    return;
+  }
 
-    const payload = {
-      subject: uploadData.subject,
-      courseName: uploadData.courseName,
-      semester: parseInt(uploadData.semester, 10),
-      fileType: uploadData.fileType,
-      link: finalLink,
-    };
-
-    try {
-      const res = await fetch('/api/admin/upload', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${session.accessToken}`, // 👈 Use session token
-        },
-        body: JSON.stringify(payload),
-      });
-
-      const result = await res.json();
-      if (res.ok) {
-        alert('✅ Resource uploaded successfully!');
-        setUploadData({
-          subject: '',
-          courseName: '',
-          semester: '',
-          fileType: 'PDF',
-          link: '',
-        });
-        setUploadedUrl('');
-        setFile(null);
-        const fileInput = document.querySelector('input[type="file"]');
-        if (fileInput) fileInput.value = '';
-      } else {
-        alert('Error: ' + result.message);
-      }
-    } catch (err) {
-      alert('Network error: ' + err.message);
-    }
+  const payload = {
+    subject: uploadData.subject,
+    courseName: uploadData.courseName,
+    semester: parseInt(uploadData.semester, 10),
+    fileType: uploadData.fileType,
+    link: finalLink, // Save the correct link in MongoDB
   };
+
+  try {
+    const res = await fetch("/api/admin/upload", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${session.accessToken}`,
+      },
+      body: JSON.stringify(payload),
+    });
+
+    const result = await res.json();
+    if (res.ok) {
+      alert("✅ Resource uploaded successfully!");
+      // Reset form
+      setUploadData({
+        subject: "",
+        courseName: "",
+        semester: "",
+        fileType: "PDF",
+        link: "",
+      });
+      setUploadedUrl("");
+      setFile(null);
+      const fileInput = document.querySelector('input[type="file"]');
+      if (fileInput) fileInput.value = "";
+    } else {
+      alert("Error: " + (result.message || "Unknown error"));
+    }
+  } catch (err) {
+    alert("Network error: " + err.message);
+  }
+};
 
   // Add new course (semester entry)
   const handleAddCourse = async (e) => {
