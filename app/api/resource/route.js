@@ -65,3 +65,41 @@ export async function GET(request) {
     );
   }
 }
+
+export async function POST(request) {
+  try {
+    await connectDB();
+    const { resourceId } = await request.json();
+
+    if (!resourceId || !mongoose.Types.ObjectId.isValid(resourceId)) {
+      return NextResponse.json(
+        { success: false, error: 'Invalid or missing resourceId' },
+        { status: 400 }
+      );
+    }
+    
+    const resource = await Resource.findById(resourceId);
+    console.log('Resource found:', resource);
+    if (!resource) {
+      return NextResponse.json(
+        { success: false, error: 'Resource not found' },
+        { status: 404 }
+      );
+    }
+    
+    resource.dowloadedCount = (resource.dowloadedCount || 0) + 1;
+      console.log('Updated download count:', resource.dowloadedCount);
+    await resource.save();
+    return NextResponse.json(
+      { success: true, message: 'Download count updated', downloadedCount: resource.dowloadedCount },
+      { status: 200 }
+    );
+  }
+  catch (error) {
+    console.error('API /api/resource POST error:', error);
+    return NextResponse.json(
+      { success: false, error: 'Failed to update download count' },
+      { status: 500 }
+    );
+  }
+}

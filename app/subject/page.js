@@ -41,9 +41,21 @@ export default function Subject() {
 };
 
 
-  const handleDownload = (item) => {
+  const handleDownload = async(item) => {
     // 1. Trigger file download or open link
     window.open(item.link, '_blank');
+
+    await fetch('/api/resource', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ resourceId: item._id })
+    })
+      .then((res)=>{
+        if(!res.ok) throw new Error('Failed to update download count');
+        console.log('Download count updated');
+        return res.json();
+      })
+      .catch(err => console.error('Failed to update download count:', err));
 
     // 2. OPTIONAL: Increment download count via API
     // fetch('/api/download', {
