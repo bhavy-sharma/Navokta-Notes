@@ -1,8 +1,8 @@
 // app/api/admin/upload/route.js
 
 import { NextResponse } from "next/server";
-import connectDB from "@/lib/mongodb"; // 👈 adjust path to your DB connection
-import Resource from "@/models/Resource"; // 👈 adjust path to your Mongoose model
+import connectDB from "../../../../lib/dbConnect"; // 👈 adjust path to your DB connection
+import Resource from "../../../../models/Resource"; // 👈 adjust path to your Mongoose model
 
 export async function POST(req) {
   await connectDB();

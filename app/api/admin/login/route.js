@@ -29,13 +29,20 @@ export const POST = async (req) => {
       );
     }
 
-    // Generate JWT - Include the user's actual role from database
-    // Don't hardcode 'admin' here - use what's in the database
+    // ✅ CHECK IF USER IS ADMIN
+    if (user.role !== 'admin') {
+      return new Response(
+        JSON.stringify({ message: 'Access denied. Admins only.' }),
+        { status: 403 }
+      );
+    }
+
+    // Generate JWT
     const token = jwt.sign(
       { 
         id: user._id, 
         email: user.email, 
-        role: user.role, // Use the role from DB, don't assume it's admin
+        role: user.role,
         name: user.name 
       },
       JWT_SECRET,
@@ -50,13 +57,15 @@ export const POST = async (req) => {
           id: user._id,
           name: user.name, 
           email: user.email, 
-          role: user.role, // Return the actual role
+          role: user.role,
           avatar: user.avatar 
-        }
+        },
+        redirect: '/admin/dashboard' // 👈 Tell frontend where to go
       }),
       { status: 200 }
     );
   } catch (error) {
+    console.error('Login error:', error);
     return new Response(
       JSON.stringify({ message: 'Server error', error: error.message }),
       { status: 500 }
