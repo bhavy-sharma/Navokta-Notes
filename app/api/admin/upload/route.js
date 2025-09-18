@@ -1,47 +1,51 @@
-// import { google } from "googleapis";
-// import { NextResponse } from "next/server";
-// import { Readable } from "stream";
-// import { OAuth2Client } from "google-auth-library";
+// app/api/admin/upload/route.js
 
-// export const runtime = 'nodejs';
+import { NextResponse } from "next/server";
+import connectDB from "@/lib/mongodb"; // 👈 adjust path to your DB connection
+import Resource from "@/models/Resource"; // 👈 adjust path to your Mongoose model
 
-// export async function POST(req) {
-//   try {
-//     const authHeader = req.headers.get("authorization");
-//     if (!authHeader) return NextResponse.json({ error: "No token" }, { status: 401 });
+export async function POST(req) {
+  await connectDB();
 
-//     const accessToken = authHeader.split(" ")[1];
-//     const oauth2Client = new OAuth2Client();
-//     oauth2Client.setCredentials({ access_token: accessToken });
-//     const drive = google.drive({ version: "v3", auth: oauth2Client });
+  try {
+    const body = await req.json();
 
-//     // Read raw file buffer (frontend must send file as body without manual Content-Type)
-//     const arrayBuffer = await req.arrayBuffer();
-//     const buffer = Buffer.from(arrayBuffer);
+    const {
+      subject,
+      courseName,
+      semester,
+      fileType,
+      link // 👈 This is the Appwrite file URL from frontend
+    } = body;
 
-//     const readableStream = new Readable();
-//     readableStream.push(buffer);
-//     readableStream.push(null);
+    if (!subject || !courseName || !semester || !fileType || !link) {
+      return NextResponse.json(
+        { error: "Missing required fields" },
+        { status: 400 }
+      );
+    }
 
-//     const response = await drive.files.create({
-//       requestBody: {
-//         name: "uploaded-file.pdf", // desired filename
-//         mimeType: "application/pdf",
-//       },
-//       media: {
-//         mimeType: "application/pdf",
-//         body: readableStream,
-//       },
-//       fields: "id, webViewLink",
-//       uploadType: "multipart", // ✅ must use multipart for metadata + file
-//     });
+    // Create new resource in MongoDB
+    const newResource = new Resource({
+      subject,
+      courseName,
+      semester: Number(semester),
+      fileType,
+      link,
+      uploadedAt: new Date()
+    });
 
-//     return NextResponse.json({ file: response.data });
-//   } catch (error) {
-//     console.error("Upload error:", error);
-//     return NextResponse.json(
-//       { error: "Upload failed", details: error instanceof Error ? error.message : String(error) },
-//       { status: 500 }
-//     );
-//   }
-// }
+    await newResource.save();
+
+    return NextResponse.json(
+      { message: "Resource uploaded successfully", resource: newResource },
+      { status: 201 }
+    );
+  } catch (error) {
+    console.error("Error saving resource:", error);
+    return NextResponse.json(
+      { error: "Failed to save resource", details: error.message },
+      { status: 500 }
+    );
+  }
+}

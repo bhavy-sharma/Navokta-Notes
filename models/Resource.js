@@ -1,16 +1,17 @@
-import mongoose from 'mongoose';
+// models/Resource.js (example)
+import mongoose from "mongoose";
 
 const resourceSchema = new mongoose.Schema({
-  courseName: { type: String, required: true }, // Fixed: "requierd" -> "required"
-  semester: { type: Number, required: true },   // Fixed: "requierd" -> "required"
-  subject: { type: String, required: true },    // Fixed: "requierd" -> "required"
+  subject: { type: String, required: true },
+  courseName: { type: String, required: true },
+  semester: { type: Number, required: true },
   fileType: { 
     type: String, 
-    enum: ['PDF', 'YouTubeLink', 'ExternalLink'], 
-    default: 'PDF'  
+    enum: ["PDF", "YouTubeLink", "ExternalLink"], 
+    required: true 
   },
-  link: { type: String, required: true },
-  dowloadedCount: { type: Number, default: 0 }    // Added: "default: 0" to track number of downloads
-}, { timestamps: true });
+  link: { type: String, required: true }, // Appwrite URL or YouTube/External link
+  uploadedAt: { type: Date, default: Date.now }
+});
 
-export default mongoose.models.Resource || mongoose.model('Resource', resourceSchema);
+export default mongoose.models.Resource || mongoose.model("Resource", resourceSchema);

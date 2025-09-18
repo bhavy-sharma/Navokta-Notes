@@ -2,30 +2,12 @@
 import { NextResponse } from 'next/server';
 import Course from '@/models/Course';
 import { connectDB } from '@/lib/dbConnect';
-import jwt from 'jsonwebtoken';
 
 export async function POST(request) {
   try {
     await connectDB(); 
 
-    const authHeader = request.headers.get('authorization');
-    if (!authHeader?.startsWith('Bearer ')) {
-      return NextResponse.json(
-        { error: 'invalid_token', message: 'No token provided' },
-        { status: 401 }
-      );
-    }
-
-    // const token = authHeader.split(' ')[1];
-    // const decoded = jwt.verify(token, process.env.JWT_SECRET);
-
-    // Optional: Verify admin role if stored in token
-    // if (decoded.role !== 'admin') {
-    //   return NextResponse.json(
-    //     { error: 'insufficient_permissions', message: 'Admin access required' },
-    //     { status: 403 }
-    //   );
-    // }
+    // ✅ ALL AUTHENTICATION REMOVED — No token check
 
     const body = await request.json();
     const { courseName, semester, description = '' } = body;
@@ -63,12 +45,8 @@ export async function POST(request) {
   } catch (error) {
     console.error('Add Course Error:', error);
 
-    if (error.name === 'JsonWebTokenError' || error.name === 'TokenExpiredError') {
-      return NextResponse.json(
-        { error: 'invalid_token', message: 'Invalid or expired token' },
-        { status: 401 }
-      );
-    }
+    // Remove JWT-specific error handling
+    // if (error.name === 'JsonWebTokenError' || error.name === 'TokenExpiredError') { ... }
 
     if (error.code === 11000) {
       return NextResponse.json(
