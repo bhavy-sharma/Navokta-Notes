@@ -1,11 +1,11 @@
 // app/api/auth/register/route.js
-import { connectToDB } from '@/lib/dbConnect';
+import { connectDB } from '@/lib/dbConnect';
 import User from '@/models/User';
 import bcrypt from 'bcryptjs';
 
 export const POST = async (req) => {
   try {
-    await connectToDB();
+    await connectDB();
 
     const { name, email, password } = await req.json();
 

@@ -60,7 +60,7 @@ export const POST = async (req) => {
           role: user.role,
           avatar: user.avatar 
         },
-        redirect: '/admin/dashboard' // 👈 Tell frontend where to go
+        // redirect: '/admin/dashboard' // 👈 Tell frontend where to go
       }),
       { status: 200 }
     );

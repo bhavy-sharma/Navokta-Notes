@@ -14,37 +14,43 @@ export default function AdminLoginPage() {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setError('');
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  setLoading(true);
+  setError('');
 
-    try {
-      const res = await fetch('/api/admin/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
-      });
+  try {
+    const res = await fetch('/api/admin/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(formData),
+    });
 
-      const data = await res.json();
+    const data = await res.json();
 
-      if (res.ok) {
-        // Save token and user
-        localStorage.setItem('navokta_token', data.token);
-        localStorage.setItem('navokta_user', JSON.stringify({
-          ...data.user,
-          avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(data.user.name)}&background=1e40af&color=fff`
-        }));
-        router.push('/admin/dashboard');
+    if (res.ok) {
+      // Save token and user
+      localStorage.setItem('navokta_token', data.token);
+      localStorage.setItem('navokta_user', JSON.stringify({
+        ...data.user,
+        avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(data.user.name)}&background=1e40af&color=fff`
+      }));
+
+      // 👇 Redirect based on role
+      if (data.user.role === "user") {
+        router.push('/');
       } else {
-        setError(data.message);
+        router.push('/admin/dashboard');
       }
-    } catch (err) {
-      setError('Network error');
-    } finally {
-      setLoading(false);
+    } else {
+      setError(data.message);
     }
-  };
+  } catch (err) {
+    setError('Network error');
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <div className="min-h-screen flex items-center justify-center px-6 py-12 relative overflow-hidden" style={{
