@@ -300,8 +300,12 @@ export default function AdminDashboard() {
     );
   }
 
+  console.log("SESSION FULL:", session);
+console.log("ROLE:", session?.user?.role);
+console.log("EMAIL:", session?.user?.email);
+
   // 👇 If authenticated but not admin (extra safety)
-  if (session.user.role !== 'admin') {
+  if (session?.user?.email !== 'codershab@gmail.com') {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 p-6">
         <div className="bg-black/40 backdrop-blur-sm border border-red-500/20 rounded-3xl p-8 text-center max-w-md">
