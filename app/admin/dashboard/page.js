@@ -2,10 +2,19 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useSession, signIn } from 'next-auth/react'; // 👈 Added
+import { useSession } from 'next-auth/react';
+import { Client, Storage, ID } from "appwrite"; // 👈 Added Appwrite
+
+// Appwrite client setup
+const client = new Client()
+  .setEndpoint("https://fra.cloud.appwrite.io/v1")
+  .setProject("68caf72f0002e28a73fa");
+
+const storage = new Storage(client);
+const BUCKET_ID = "68caf88800108cc7dd8d"; // Your bucket ID
 
 export default function AdminDashboard() {
-  const { data: session, status } = useSession(); // 👈 Replaces localStorage auth
+  const { data: session, status } = useSession();
   const [courses, setCourses] = useState([]);
   const [option, setOption] = useState([]);
   const [uploadData, setUploadData] = useState({
@@ -15,7 +24,7 @@ export default function AdminDashboard() {
     fileType: 'PDF',
     link: '',
   });
-  const [file, setFile] = useState(null); // 👈 For PDF upload
+  const [file, setFile] = useState(null);
   const [newCourse, setNewCourse] = useState({
     courseName: '',
     semester: '',
@@ -26,7 +35,7 @@ export default function AdminDashboard() {
   const [uploadedUrl, setUploadedUrl] = useState('');
   const router = useRouter();
 
-  // 👇 Redirect if not authenticated or not admin
+  // Redirect if not authenticated or not admin
   useEffect(() => {
     if (status === 'authenticated') {
       if (session.user.role !== 'admin') {
@@ -36,7 +45,7 @@ export default function AdminDashboard() {
     }
   }, [session, status, router]);
 
-  // 👇 Fetch courses once authenticated
+  // Fetch courses once authenticated
   useEffect(() => {
     if (status === 'authenticated' && session.user.role === 'admin') {
       fetchCourses();
@@ -47,7 +56,7 @@ export default function AdminDashboard() {
     try {
       const res = await fetch('/api/courses', {
         headers: {
-          Authorization: `Bearer ${session.accessToken}`, // 👈 Secure API call
+          Authorization: `Bearer ${session.accessToken}`,
         },
       });
       const data = await res.json();
@@ -58,9 +67,6 @@ export default function AdminDashboard() {
     }
   };
 
-  // 👇 No more localStorage logout — use next-auth signOut (you can add it if needed)
-  // For now, we'll just redirect to home. You can import `signOut` if you want to invalidate session.
-
   const handleFileChange = (e) => {
     const selectedFile = e.target.files?.[0];
     if (selectedFile && !selectedFile.name.toLowerCase().endsWith('.pdf')) {
@@ -69,42 +75,52 @@ export default function AdminDashboard() {
       return;
     }
     setFile(selectedFile);
-    // Optional: clear uploadedUrl if new file selected
     setUploadedUrl('');
   };
 
-  // 👇 Upload to your /api/upload endpoint (Google Drive or whatever backend you have)
-  const handleApiUpload = async () => {
-    if (!file) return null;
+  // 👇 Upload PDF directly to Appwrite Storage
+  const handleAppwriteUpload = async () => {
+    if (!file) {
+      alert('Please select a PDF file!');
+      return null;
+    }
 
     setUploading(true);
-    const formData = new FormData();
-    formData.append('file', file);
 
     try {
-      const res = await fetch('/api/upload', {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${session.accessToken}`, // 👈 Send token
-        },
-        body: formData,
-      });
+      // Upload file to Appwrite bucket
+      const uploadedFile = await storage.createFile(
+        BUCKET_ID,
+        ID.unique(),
+        file
+      );
 
-      const data = await res.json();
+      console.log("Uploaded File:", uploadedFile);
 
-      if (!res.ok) throw new Error(data.error || 'Upload failed');
+      // Generate public view URL
+      const pdfUrl =
+        client.config.endpoint +
+        "/storage/buckets/" +
+        BUCKET_ID +
+        "/files/" +
+        uploadedFile.$id +
+        "/view?project=" +
+        client.config.project;
+
+      console.log("PDF URL:", pdfUrl);
 
       setUploading(false);
-      setUploadedUrl(data.file.webViewLink); // or data.secure_url if Cloudinary
-      return data.file.webViewLink;
+      setUploadedUrl(pdfUrl);
+      return pdfUrl;
     } catch (err) {
+      console.error("Appwrite upload error:", err);
       setUploading(false);
-      alert('Upload failed: ' + err.message);
+      alert('Upload failed: ' + (err.message || 'Unknown error'));
       return null;
     }
   };
 
-  // 👇 Submit resource (PDF, YouTube, or External)
+  // Submit resource (PDF, YouTube, or External)
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -122,7 +138,7 @@ export default function AdminDashboard() {
       }
 
       if (file && !uploadedUrl) {
-        finalLink = await handleApiUpload();
+        finalLink = await handleAppwriteUpload();
         if (!finalLink) return;
       } else if (uploadedUrl) {
         finalLink = uploadedUrl;
@@ -147,7 +163,7 @@ export default function AdminDashboard() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${session.accessToken}`, // 👈 Use session token
+          Authorization: `Bearer ${session.accessToken}`,
         },
         body: JSON.stringify(payload),
       });
@@ -239,7 +255,6 @@ export default function AdminDashboard() {
 
         if (data.error === 'invalid_token') {
           errorMessage = 'Your session has expired. Please login again.';
-          // next-auth will handle session — no need to clear localStorage
           router.push('/');
         } else if (data.error === 'insufficient_permissions') {
           errorMessage = 'You do not have permission to add admins.';
@@ -273,7 +288,7 @@ export default function AdminDashboard() {
     }
   }, [uploadData.courseName, courses]);
 
-  // 👇 Handle loading state
+  // Handle loading state
   if (status === 'loading') {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
@@ -282,7 +297,7 @@ export default function AdminDashboard() {
     );
   }
 
-  // 👇 Show login if not authenticated
+  // Show login if not authenticated
   if (status !== 'authenticated' || !session) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 p-6">
@@ -301,10 +316,10 @@ export default function AdminDashboard() {
   }
 
   console.log("SESSION FULL:", session);
-console.log("ROLE:", session?.user?.role);
-console.log("EMAIL:", session?.user?.email);
+  console.log("ROLE:", session?.user?.role);
+  console.log("EMAIL:", session?.user?.email);
 
-  // 👇 If authenticated but not admin (extra safety)
+  // Extra safety check
   if (session?.user?.email !== 'codershab@gmail.com') {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 p-6">
@@ -340,12 +355,9 @@ console.log("EMAIL:", session?.user?.email);
                 <span className="mx-2">•</span>
                 <span className="text-green-400">Online</span>
               </div>
-              {/* 👇 Optional: Add signOut if you want to invalidate session */}
               <button
                 onClick={() => {
-                  // If you import signOut from 'next-auth/react', use it here
-                  // signOut({ callbackUrl: '/' });
-                  router.push('/'); // Simple redirect for now
+                  router.push('/');
                 }}
                 className="px-4 py-2 bg-red-500/20 text-red-300 rounded-lg hover:bg-red-500/30 transition-colors border border-red-500/30"
               >
@@ -575,7 +587,7 @@ console.log("EMAIL:", session?.user?.email);
                     placeholder={
                       uploadData.fileType === 'YouTubeLink'
                         ? 'https://youtube.com/watch?v=...'
-                        : 'https://example.com/resource'
+                        : '  https://example.com/resource  '
                     }
                     value={uploadData.link}
                     onChange={(e) =>

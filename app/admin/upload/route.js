@@ -1,4 +1,3 @@
-// app/api/admin/upload/route.js
 import { connectDB } from '@/lib/dbConnect';
 import Resource from '@/models/Resource';
 import Course from '@/models/Course';
@@ -13,6 +12,7 @@ export const POST = async (req) => {
     // Verify JWT
     const authHeader = req.headers.get('authorization');
     if (!authHeader) return new Response(JSON.stringify({ message: 'Unauthorized' }), { status: 401 });
+
     const token = authHeader.split(' ')[1];
     if (!token) return new Response(JSON.stringify({ message: 'Token required' }), { status: 401 });
 
@@ -27,62 +27,44 @@ export const POST = async (req) => {
       return new Response(JSON.stringify({ message: 'Access denied' }), { status: 403 });
     }
 
-    // Parse body
     const body = await req.json();
-    const { subject,courseName,semester,fileType,link } = body;
+    const { subject, courseName, semester, fileType, link } = body;
 
-    if (!subject ||!link ||!fileType ||!courseName ||!semester) {
-      return new Response(
-        JSON.stringify({ message: 'Title, course, and type are required' }),
-        { status: 400 }
-      );
+    if (!subject || !link || !fileType || !courseName || !semester) {
+      return new Response(JSON.stringify({ message: 'All fields are required' }), { status: 400 });
     }
 
-    // Find course by code
-    const course = await Course.findOne({ code: courseName.toLowerCase() });
+    // Correct course lookup
+    const course = await Course.findOne({ courseName });
     if (!course) {
-      return new Response(
-        JSON.stringify({ message: 'Course not found' }),
-        { status: 404 }
-      );
+      return new Response(JSON.stringify({ message: 'Course not found' }), { status: 404 });
     }
 
-    const exists =await Resource.findOne({courseName, semester ,subject});
-
+    // Prevent duplicate resource
+    const exists = await Resource.findOne({ courseName, semester, subject });
     if (exists) {
-      return new Response(
-        JSON.stringify({ message: 'Resource with this combination already exists' }),
-        { status: 409 }
-      );
+      return new Response(JSON.stringify({ message: 'Resource already exists' }), { status: 409 });
     }
 
-    // Create resource
+    // Save resource
     const resource = new Resource({
-     subject,
-     courseName,
-     semester,
-     fileType,
-     link,
-     dowloadedCount
+      subject,
+      courseName,
+      semester,
+      fileType,
+      link,
+     // Initialize download count
     });
 
     const saved = await resource.save();
 
     return new Response(
-      JSON.stringify({ 
-        message: 'Resource uploaded successfully', 
-        resource: saved 
-      }),
+      JSON.stringify({ message: 'Resource uploaded successfully', resource: saved }),
       { status: 201 }
+    
     );
+
   } catch (error) {
-    return new Response(
-      JSON.stringify({ message: 'Server error', error: error.message }),
-      { status: 500 }
-    );
+    return new Response(JSON.stringify({ message: 'Server error', error: error.message }), { status: 500 });
   }
 };
-
-//get resourses
-
-//update resourse dowload count only 

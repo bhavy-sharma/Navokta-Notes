@@ -34,11 +34,11 @@ export async function POST(request) { // ✅ 'request' not 'req, res'
     }
 
     // Check for duplicate courseName + semester combo or unique semester
-    const exists = await Course.findOne({ semester }); // Since semester is unique per schema
+    const exists = await Course.findOne({ courseName }); // Since courseName is unique per schema
     if (exists) {
       return NextResponse.json(
         {
-          message: `Semester ${semester} already exists for course: ${exists.courseName}`,
+          message: `course is alrady exists ${courseName}`,
         },
         { status: 409 }
       );
