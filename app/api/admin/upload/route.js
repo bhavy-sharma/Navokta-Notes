@@ -32,6 +32,7 @@ export async function POST(req) {
       semester: Number(semester),
       fileType,
       link,
+      DownloadCount: 0,
       uploadedAt: new Date()
     });
 

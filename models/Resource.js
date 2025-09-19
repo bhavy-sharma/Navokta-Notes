@@ -1,4 +1,5 @@
 // models/Resource.js (example)
+import { Download } from "lucide-react";
 import mongoose from "mongoose";
 
 const resourceSchema = new mongoose.Schema({
@@ -11,6 +12,7 @@ const resourceSchema = new mongoose.Schema({
     required: true 
   },
   link: { type: String, required: true }, // Appwrite URL or YouTube/External link
+  DownloadCount: { type: Number, default: 0 ,required: true},
   uploadedAt: { type: Date, default: Date.now }
 });
 
