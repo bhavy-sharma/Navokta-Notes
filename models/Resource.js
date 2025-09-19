@@ -1,19 +1,16 @@
-// models/Resource.js (example)
-import { Download } from "lucide-react";
-import mongoose from "mongoose";
+// models/Resource.js
+import mongoose from 'mongoose';
 
 const resourceSchema = new mongoose.Schema({
-  subject: { type: String, required: true },
   courseName: { type: String, required: true },
   semester: { type: Number, required: true },
-  fileType: { 
-    type: String, 
-    enum: ["PDF", "YouTubeLink", "ExternalLink"], 
-    required: true 
-  },
-  link: { type: String, required: true }, // Appwrite URL or YouTube/External link
-  DownloadCount: { type: Number, default: 0 ,required: true},
-  uploadedAt: { type: Date, default: Date.now }
+  subject: { type: String, required: true },
+  fileType: { type: String, required: true },
+  link: { type: String, required: true },
+  // ✅ Initialize downloadedCount to 0 if not set
+  downloadedCount: { type: Number, default: 0 }
+}, {
+  timestamps: true
 });
 
-export default mongoose.models.Resource || mongoose.model("Resource", resourceSchema);
+export default mongoose.models.Resource || mongoose.model('Resource', resourceSchema);
