@@ -1,8 +1,43 @@
 // /api/stats.js
-export default async function handler(req, res) {
-  // Aggregate total courses and total downloads
-  const totalCourses = await Course.countDocuments();
-  const totalDownloads = await DownloadLog.countDocuments(); // or sum from course.downloads
+// app/api/dashboard/stats/route.js
+import Course from "@/models/Course";
+import { connectDB } from "@/lib/dbConnect";
+import Resource from "@/models/Resource";
 
-  res.status(200).json({ totalCourses, totalDownloads });
+export async function GET() {
+  try {
+    await connectDB();
+
+    const totalCourses = await Course.countDocuments();
+    const totalDownloads=await Resource.aggregate([
+      {
+        $group: {
+          _id: null,
+          total: { $sum: "$downloadCount" }
+        }
+      }
+    ]);
+
+    
+    const totalDownloadsCount = totalDownloads.length > 0 ? totalDownloads[0].total : 0;
+
+
+    if (totalCourses === 0) {
+      return new Response(
+        JSON.stringify({ message: "No courses found", totalCourses: 0 }),
+        { status: 200 } 
+      );
+    }
+
+   
+    return new Response(
+      JSON.stringify({ totalCourses, totalDownloads: totalDownloadsCount }),
+      { status: 200 }
+    );
+  } catch (error) {
+    return new Response(
+      JSON.stringify({ message: "Server error", error: error.message }),
+      { status: 500 }
+    );
+  }
 }
