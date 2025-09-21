@@ -18,8 +18,20 @@ export default function DashboardPage() {
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
+
+        const res = await fetch('/api/dashboard/stats');
+        if (!res.ok) throw new Error("Failed to fetch stats");
+
+        const data = await res.json();
+        setStats(data);
+
+        const trendingRes = await fetch('/api/dashboard/trending');
+        if (!trendingRes.ok) throw new Error("Failed to fetch trending courses");
+
+        const trendingData = await trendingRes.json();
+        setTrendingCourses(trendingData);
         // Simulate API delay
-        await new Promise(resolve => setTimeout(resolve, 800));
+        // await new Promise(resolve => setTimeout(resolve, 800));
 
         // ⚠️ REPLACE THESE WITH REAL API CALLS LATER
         // Example:
@@ -28,23 +40,24 @@ export default function DashboardPage() {
         // const trendingRes = await fetch('/api/courses/trending');
         // const trendingData = await trendingRes.json();
 
-        const [statsRes, trendingRes] = await Promise.all([
-          fetch('/api/dashboard/stats'),
-          fetch('/api/dashboard/trending')
-        ]);
+        // const [statsRes, trendingRes] = await Promise.all([
+        //   fetch('/api/dashboard/stats'),
+        //   fetch('/api/dashboard/trending')
+        // ]);
+        // const totalCourses = await fetch('/api/dashboard/stats');
 
-        const statsData = await statsRes.json();
-        const trendingData = await trendingRes.json();
+        // const statsData = await totalCourses.json();
+        // // const trendingData = await trendingRes.json();
 
-        setStats(statsData);
-        setTrendingCourses(trendingData.map(course => ({
-          _id: course._id,
-          title: course.title,
-          weeklyDownloads: course.stats.lastWeekDownloads,
-          color: "from-blue-900/30 to-cyan-900/30", // or map based on category
-          border: "border-blue-800/50"
-        })));
-        
+        // setStats(statsData);
+        // setTrendingCourses(trendingData.map(course => ({
+        //   _id: course._id,
+        //   title: course.title,
+        //   weeklyDownloads: course.stats.lastWeekDownloads,
+        //   color: "from-blue-900/30 to-cyan-900/30", // or map based on category
+        //   border: "border-blue-800/50"
+        // })));
+
       } catch (error) {
         console.error("Failed to load dashboard data");
       }
@@ -60,13 +73,14 @@ export default function DashboardPage() {
     try {
       setUser(JSON.parse(userData));
       setLoading(false);
-      fetchDashboardData();
+
     } catch (error) {
       console.error('Failed to parse user data');
       localStorage.removeItem('navokta_user');
       localStorage.removeItem('navokta_token');
       router.push('/auth/login');
     }
+    fetchDashboardData();
   }, [router]);
 
   const handleLogout = () => {
@@ -117,8 +131,8 @@ export default function DashboardPage() {
               <h2 className="text-xl font-semibold">{user.name}</h2>
               <p className="text-gray-400">{user.email}</p>
               <span className={`inline-block mt-1 px-3 py-1 text-xs font-medium rounded-full ${user.role === 'admin'
-                  ? 'bg-red-900 text-red-200'
-                  : 'bg-blue-900 text-blue-200'
+                ? 'bg-red-900 text-red-200'
+                : 'bg-blue-900 text-blue-200'
                 }`}>
                 {user.role === 'admin' ? 'Admin' : 'Student'}
               </span>
@@ -127,19 +141,24 @@ export default function DashboardPage() {
         </div>
 
         {/* 📊 Simplified Stats Grid — Only 2 Global Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
-          {/* Total Courses on Platform */}
-          <div className="bg-gradient-to-br from-yellow-900/40 to-orange-900/40 border border-yellow-800/50 rounded-xl p-6 text-center hover:shadow-lg hover:shadow-yellow-500/10 transition">
-            <div className="text-3xl md:text-4xl font-bold">{stats.totalCourses.toLocaleString()}</div>
-            <div className="text-gray-400 text-sm mt-1">📚 Total Courses</div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Total Courses */}
+          <div className="bg-gradient-to-br from-yellow-600/20 to-orange-600/20 border border-yellow-500/30 rounded-xl p-6 text-center hover:shadow-xl hover:shadow-yellow-400/30 transition-all duration-300">
+            <div className="text-3xl md:text-4xl font-bold text-yellow-800">
+              {stats?.totalCourses?.toLocaleString() || 0}
+            </div>
+            <div className="text-gray-500 text-sm mt-1">📚 Total Courses</div>
           </div>
 
           {/* Total Downloads (Platform-wide) */}
-          <div className="bg-gradient-to-br from-pink-900/40 to-red-900/40 border border-pink-800/50 rounded-xl p-6 text-center hover:shadow-lg hover:shadow-pink-500/10 transition">
-            <div className="text-3xl md:text-4xl font-bold">{stats.totalDownloads.toLocaleString()}</div>
-            <div className="text-gray-400 text-sm mt-1">📥 Total Downloads</div>
+          <div className="bg-gradient-to-br from-pink-600/20 to-red-600/20 border border-pink-500/30 rounded-xl p-6 text-center hover:shadow-xl hover:shadow-pink-400/30 transition-all duration-300">
+            <div className="text-3xl md:text-4xl font-bold text-pink-800">
+              {stats?.totalDownloads?.toLocaleString() || 0}
+            </div>
+            <div className="text-gray-500 text-sm mt-1">📥 Total Downloads</div>
           </div>
         </div>
+
 
         {/* 🚀 Trending This Week — Fetched & Sorted by Downloads */}
         <div className="mb-12">
@@ -154,12 +173,12 @@ export default function DashboardPage() {
                 className={`bg-gradient-to-br ${course.color} border ${course.border} rounded-xl p-5 hover:scale-105 transition transform cursor-pointer group`}
               >
                 <h4 className="font-medium text-white group-hover:text-blue-300 leading-tight">
-                  {course.title}
+                  {course.courseName}
                 </h4>
                 <div className="flex items-center justify-between mt-4">
                   <span className="text-xs text-gray-400">This Week</span>
                   <span className="text-xs bg-white/10 px-2.5 py-1 rounded-full text-green-400 font-medium">
-                    {course.weeklyDownloads.toLocaleString()} 📥
+                    {course.downloadedCount.toLocaleString()} 📥
                   </span>
                 </div>
               </div>
