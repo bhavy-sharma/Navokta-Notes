@@ -58,8 +58,8 @@ export default function Footer() {
             {/* Creator Badge */}
             <div className="flex items-center space-x-2 text-sm text-gray-500 border-l-2 border-gradient-to-b from-blue-500 to-purple-500 pl-3 mt-auto">
               <span>⚡</span>
-              <span className="font-medium text-white">Bhavy Sharma</span>
-              <span>- The One-Man Army</span>
+              <span className="font-medium text-white">Bhavy Sharma & Anant Pratap Singh</span>
+              <span>- The Two-Man Army</span>
             </div>
           </div>
 
