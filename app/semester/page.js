@@ -3,6 +3,9 @@
 import { useRouter, useSearchParams } from 'next/navigation';
 import React, { useState, useEffect } from 'react';
 
+
+export const dynamic = 'force-dynamic'  
+
 export default function Semester() {
   const router = useRouter();
   const searchParams = useSearchParams();
