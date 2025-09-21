@@ -5,13 +5,14 @@ import { connectDB } from '@/lib/dbConnect';
 
 export async function POST(request) {
   try {
-    await connectDB(); 
+    await connectDB();
 
-    // ✅ ALL AUTHENTICATION REMOVED — No token check
+    // ✅ AUTHENTICATION REMOVED — as requested
 
     const body = await request.json();
     const { courseName, semester, description = '' } = body;
 
+    // Validate required fields
     if (!courseName || semester === undefined) {
       return NextResponse.json(
         { message: 'Course name and semester are required' },
@@ -19,20 +20,11 @@ export async function POST(request) {
       );
     }
 
-    // // Check for duplicate semester (since it's unique)
-    // const existing = await Course.findOne({ semester });
-    // if (existing) {
-    //   return NextResponse.json(
-    //     {
-    //       message: `Semester ${semester} already exists for course: ${existing.courseName}`,
-    //     },
-    //     { status: 409 }
-    //   );
-    // }
+    // ✅ DUPLICATE SEMESTER CHECK REMOVED — allowing duplicates
 
     const newCourse = new Course({
       courseName,
-      semester: parseInt(semester, 10),
+      semester: parseInt(semester, 10), // Ensure it's a number
       description,
     });
 
@@ -45,16 +37,7 @@ export async function POST(request) {
   } catch (error) {
     console.error('Add Course Error:', error);
 
-    // Remove JWT-specific error handling
-    // if (error.name === 'JsonWebTokenError' || error.name === 'TokenExpiredError') { ... }
-
-    // if (error.code === 11000) {
-    //   return NextResponse.json(
-    //     { message: 'Duplicate semester entry' },
-    //     { status: 409 }
-    //   );
-    // }
-
+    // Generic error handling — no JWT or duplicate key specifics
     return NextResponse.json(
       { message: 'Internal server error', error: error.message },
       { status: 500 }
