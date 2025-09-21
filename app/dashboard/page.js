@@ -3,6 +3,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 
 export default function DashboardPage() {
   const [user, setUser] = useState(null);
@@ -122,7 +123,7 @@ export default function DashboardPage() {
         {/* User Info Card */}
         <div className="bg-black/40 backdrop-blur-sm border border-gray-800 rounded-2xl p-6 mb-10">
           <div className="flex items-center space-x-4">
-            <img
+            <Image
               src={user.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=1e40af&color=fff`}
               alt="Profile"
               className="w-16 h-16 rounded-full border-2 border-blue-500/50"
