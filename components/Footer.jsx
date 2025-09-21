@@ -51,9 +51,7 @@ export default function Footer() {
               {[
                 { name: 'Home', href: '/' },
                 { name: 'Courses', href: '/courses' },
-                { name: 'PYQs', href: '/pyqs' },
-                { name: 'Videos', href: '/videos' },
-                { name: 'Admin', href: '/admin/dashboard' },
+                
               ].map((link) => (
                 <li key={link.name}>
                   <a
@@ -68,7 +66,7 @@ export default function Footer() {
           </div>
 
           {/* Resources */}
-          <div>
+          {/* <div>
             <h4 className="text-lg font-bold text-white mb-5 flex items-center">
               <span className="w-1.5 h-1.5 bg-purple-500 rounded-full mr-3"></span>
               Resources
@@ -91,7 +89,7 @@ export default function Footer() {
                 </li>
               ))}
             </ul>
-          </div>
+          </div> */}
 
           {/* Connect */}
           <div>
@@ -130,7 +128,7 @@ export default function Footer() {
             &copy; {new Date().getFullYear()} <strong className="text-white">Navokta Notes</strong>. Crafted with{' '}
             <span className="text-red-500">❤️</span> by{' '}
             <span className="font-bold bg-gradient-to-r from-blue-400 to-pink-400 text-transparent bg-clip-text">
-              Bhavy Sharma
+              Bhavy Sharma & Anant Pratap Singh
             </span>
             . All rights reserved.
           </p>
