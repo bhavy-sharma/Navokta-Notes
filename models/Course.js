@@ -3,7 +3,7 @@ import mongoose from 'mongoose';
 
 const courseSchema = new mongoose.Schema({
   courseName: { type: String, required: true },
-  semester: { type: Number, required: true, unique: true },
+  semester: { type: Number, required: true},
   description: { type: String, required: false, default: '' } 
 }, { timestamps: true });
 
