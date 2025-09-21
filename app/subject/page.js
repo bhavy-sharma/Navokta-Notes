@@ -2,6 +2,7 @@
 
 import { useSearchParams, useRouter } from 'next/navigation';
 import React, { useEffect, useState } from 'react';
+import toast from 'react-hot-toast';
 
 export default function Subject() {
   const searchParams = useSearchParams();
@@ -58,11 +59,13 @@ export default function Subject() {
       console.log('Download count updated for:', item.subject);
     } catch (err) {
       console.error('Failed to update download count:', err);
+      toast.error('Failed to update download count');
     }
   };
 
   const handleBack = () => {
     router.push('/courses');
+    toast.success('Navigated back to Courses');
   };
 
   // LOADING STATE — Beautiful animated skeleton

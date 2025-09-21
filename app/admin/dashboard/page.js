@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Client, Storage, ID } from "appwrite";
+import toast from 'react-hot-toast';
 
 // Appwrite client setup
 const client = new Client()
@@ -49,7 +50,8 @@ export default function AdminDashboard() {
     // 👇 BLOCK ACCESS IF NOT ALLOWED EMAIL
     // You can remove this block if you want the dashboard open to everyone
     if (currentUser.email !== ALLOWED_ADMIN_EMAIL) {
-      alert('Access denied. Admins only.');
+      // alert('Access denied. Admins only.');
+      toast.error('Access denied. Admins only.')
       router.push('/');
       setLoading(false);
       return;
@@ -68,14 +70,16 @@ export default function AdminDashboard() {
       if (res.ok) setCourses(data);
     } catch (err) {
       console.error('Failed to load courses:', err);
-      alert('Failed to load courses');
+      // alert('Failed to load courses');
+      toast.error('Failed to load courses');
     }
   };
 
   const handleFileChange = (e) => {
     const selectedFile = e.target.files?.[0];
     if (selectedFile && !selectedFile.name.toLowerCase().endsWith('.pdf')) {
-      alert('Please select a PDF file only!');
+      // alert('Please select a PDF file only!');
+      toast.error('Please select a PDF file only!');
       setFile(null);
       return;
     }
@@ -86,7 +90,8 @@ export default function AdminDashboard() {
   // Upload PDF directly to Appwrite Storage
   const handleAppwriteUpload = async () => {
     if (!file) {
-      alert('Please select a PDF file!');
+      // alert('Please select a PDF file!');
+      toast.error('Please select a PDF file!');
       return null;
     }
 
@@ -114,7 +119,8 @@ export default function AdminDashboard() {
     } catch (err) {
       console.error("Appwrite upload error:", err);
       setUploading(false);
-      alert('Upload failed: ' + (err.message || 'Unknown error'));
+      // alert('Upload failed: ' + (err.message || 'Unknown error'));
+      toast.error('Upload failed: ' + (err.message || 'Unknown error'));
       return null;
     }
   };
@@ -127,7 +133,8 @@ export default function AdminDashboard() {
 
     if (uploadData.fileType === 'PDF') {
       if (!file && !uploadedUrl) {
-        alert('Please select a PDF file!');
+        // alert('Please select a PDF file!');
+        toast.error('Please select a PDF file!');
         return;
       }
 
@@ -140,7 +147,8 @@ export default function AdminDashboard() {
     }
 
     if (!finalLink) {
-      alert('Please provide a valid link or upload a file.');
+      // alert('Please provide a valid link or upload a file.');
+      toast.error('Please provide a valid link or upload a file.');
       return;
     }
 
@@ -164,7 +172,8 @@ export default function AdminDashboard() {
 
       const result = await res.json();
       if (res.ok) {
-        alert('✅ Resource uploaded successfully!');
+        // alert('✅ Resource uploaded successfully!');
+        toast.success('Resource uploaded successfully!');
         setUploadData({
           subject: '',
           courseName: '',
@@ -177,10 +186,12 @@ export default function AdminDashboard() {
         const fileInput = document.querySelector('input[type="file"]');
         if (fileInput) fileInput.value = '';
       } else {
-        alert('Error: ' + result.message);
+        // alert('Error: ' + result.message);
+        toast.error('Error: ' + result.message)
       }
     } catch (err) {
-      alert('Network error: ' + err.message);
+      // alert('Network error: ' + err.message);
+      toast.error('Network error: ' + err.message)
     }
   };
 
@@ -189,7 +200,8 @@ export default function AdminDashboard() {
     e.preventDefault();
 
     if (!newCourse.courseName || !newCourse.semester) {
-      alert('Please fill in all required fields');
+      // alert('Please fill in all required fields');
+      toast.error('Please fill in all required fields')
       return;
     }
 
@@ -209,14 +221,16 @@ export default function AdminDashboard() {
 
       const result = await res.json();
       if (res.ok) {
-        alert('✅ Semester added successfully!');
+        toast.success(' Semester added successfully!');
         setNewCourse({ courseName: '', semester: '', description: '' });
         fetchCourses();
       } else {
-        alert('Error: ' + result.message);
+        // alert('Error: ' + result.message);
+        toast.error('Error: ' + result.message)
       }
     } catch (err) {
-      alert('Network error: ' + err.message);
+      // alert('Network error: ' + err.message);
+      toast.error('Network error: ' + err.message)
     }
   };
 
@@ -226,7 +240,8 @@ export default function AdminDashboard() {
 
     const { name, email, password } = newAdmin;
     if (!name || !email || !password) {
-      alert('All fields are required');
+      // alert('All fields are required');
+      toast.error('All fields are required')
       return;
     }
 
@@ -243,15 +258,15 @@ export default function AdminDashboard() {
       const data = await response.json();
 
       if (response.ok) {
-        alert(`✅ Admin "${data.user.name}" created successfully!`);
+        toast.success(` Admin "${data.user.name}" created successfully!`);
         setNewAdmin({ name: '', email: '', password: '' });
       } else {
         let errorMessage = data.message || 'Unknown error occurred';
-        alert(`Error: ${errorMessage}`);
+        toast.error(`Error: ${errorMessage}`);
       }
     } catch (err) {
       console.error('Error adding admin:', err);
-      alert('Network error: ' + err.message);
+      toast.error('Network error: ' + err.message);
     }
   };
 
