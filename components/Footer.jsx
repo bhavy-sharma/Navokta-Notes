@@ -1,6 +1,27 @@
 'use client';
 
+import { useState } from 'react'; // 👈 Add this
+import LoginRequiredModal from './LoginRequiredModal'; // 👈 Import modal
+
 export default function Footer() {
+  const [showLoginModal, setShowLoginModal] = useState(false); // 👈 Modal state
+
+  // 👇 Handle Courses Click with Auth Check
+  const handleCoursesClick = (e) => {
+    const token = localStorage.getItem('navokta_token');
+    const userData = localStorage.getItem('navokta_user');
+
+    if (!token || !userData) {
+      e.preventDefault();
+      setShowLoginModal(true);
+    }
+    // If logged in, allow natural navigation (no need to redirect manually)
+  };
+
+  const closeModal = () => {
+    setShowLoginModal(false);
+  };
+
   return (
     <footer className="relative overflow-hidden" style={{
       background: 'radial-gradient(circle at top center, #0a0a0a, #000)',
@@ -22,10 +43,11 @@ export default function Footer() {
       <div className="absolute -bottom-20 right-1/4 w-96 h-96 bg-gradient-to-l from-purple-600/20 to-pink-600/20 rounded-full blur-3xl animate-pulse delay-1000"></div>
 
       <div className="container mx-auto px-6 pt-20 pb-12 relative z-10">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-10">
+        {/* ✅ Changed to 3 columns */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
 
           {/* Brand */}
-          <div>
+          <div className="flex flex-col h-full">
             <h3 className="text-2xl font-black bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 text-transparent bg-clip-text mb-4">
               Navokta Notes
             </h3>
@@ -34,7 +56,7 @@ export default function Footer() {
             </p>
 
             {/* Creator Badge */}
-            <div className="flex items-center space-x-2 text-sm text-gray-500 border-l-2 border-gradient-to-b from-blue-500 to-purple-500 pl-3">
+            <div className="flex items-center space-x-2 text-sm text-gray-500 border-l-2 border-gradient-to-b from-blue-500 to-purple-500 pl-3 mt-auto">
               <span>⚡</span>
               <span className="font-medium text-white">Bhavy Sharma</span>
               <span>- The One-Man Army</span>
@@ -42,20 +64,20 @@ export default function Footer() {
           </div>
 
           {/* Quick Links */}
-          <div>
+          <div className="flex flex-col h-full">
             <h4 className="text-lg font-bold text-white mb-5 flex items-center">
               <span className="w-1.5 h-1.5 bg-blue-500 rounded-full mr-3"></span>
               Quick Links
             </h4>
-            <ul className="space-y-3">
+            <ul className="space-y-3 flex-1">
               {[
                 { name: 'Home', href: '/' },
                 { name: 'Courses', href: '/courses' },
-                
               ].map((link) => (
                 <li key={link.name}>
                   <a
                     href={link.href}
+                    onClick={link.name === 'Courses' ? handleCoursesClick : undefined}
                     className="text-gray-400 hover:text-blue-300 transition-all duration-300 hover:translate-x-1 block text-sm"
                   >
                     {link.name}
@@ -65,41 +87,15 @@ export default function Footer() {
             </ul>
           </div>
 
-          {/* Resources */}
-          {/* <div>
-            <h4 className="text-lg font-bold text-white mb-5 flex items-center">
-              <span className="w-1.5 h-1.5 bg-purple-500 rounded-full mr-3"></span>
-              Resources
-            </h4>
-            <ul className="space-y-3">
-              {[
-                'About Us',
-                'Contact',
-                'Privacy Policy',
-                'Contribute',
-                'Report Issue',
-              ].map((item) => (
-                <li key={item}>
-                  <a
-                    href="#"
-                    className="text-gray-400 hover:text-purple-300 transition-all duration-300 hover:translate-x-1 block text-sm"
-                  >
-                    {item}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </div> */}
-
           {/* Connect */}
-          <div>
+          <div className="flex flex-col h-full">
             <h4 className="text-lg font-bold text-white mb-5">Connect With Me</h4>
             <div className="flex space-x-3 mb-6">
               {[
-                { name: 'Twitter', icon: '𝕏', href: 'https://x.com/bhavy_codes', color: 'hover:bg-blue-500' },
-                { name: 'LinkedIn', icon: '📘', href: 'https://linkedin.com/in/bhavy-sharma-dev', color: 'hover:bg-blue-600' },
-                { name: 'Instagram', icon: '📸', href: 'https://instagram.com/bhavy_codes', color: 'hover:bg-pink-600' },
-                { name: 'YouTube', icon: '▶️', href: 'https://youtube.com/c/BhavyCodes', color: 'hover:bg-red-600' },
+                { name: 'Twitter', icon: '𝕏', href: 'https://x.com/bhavy__sharma__/', color: 'hover:bg-blue-500' },
+                { name: 'LinkedIn', icon: '📘', href: 'https://linkedin.com/in/bhavy-sharma', color: 'hover:bg-blue-600' },
+                { name: 'Instagram', icon: '📸', href: 'https://instagram.com/navokta', color: 'hover:bg-pink-600' },
+                { name: 'YouTube', icon: '▶️', href: 'https://www.youtube.com/@bhavy__sharma__', color: 'hover:bg-red-600' },
               ].map((social) => (
                 <a
                   key={social.name}
@@ -115,7 +111,7 @@ export default function Footer() {
             </div>
 
             {/* Student Community */}
-            <p className="text-xs text-gray-500 leading-relaxed">
+            <p className="text-xs text-gray-500 leading-relaxed mt-auto">
               Join <strong className="text-white">10,000+</strong> students learning smarter every day.
             </p>
           </div>
@@ -139,6 +135,12 @@ export default function Footer() {
           </p>
         </div>
       </div>
+
+      {/* ✅ Login Modal */}
+      <LoginRequiredModal 
+        isOpen={showLoginModal} 
+        onClose={closeModal} 
+      />
     </footer>
   );
 }
