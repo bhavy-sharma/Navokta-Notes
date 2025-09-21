@@ -4,6 +4,9 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import React, { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 
+
+export const dynamic = 'force-dynamic'
+
 export default function Subject() {
   const searchParams = useSearchParams();
   const course = searchParams.get('courseName');
