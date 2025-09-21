@@ -19,16 +19,16 @@ export async function POST(request) {
       );
     }
 
-    // Check for duplicate semester (since it's unique)
-    const existing = await Course.findOne({ semester });
-    if (existing) {
-      return NextResponse.json(
-        {
-          message: `Semester ${semester} already exists for course: ${existing.courseName}`,
-        },
-        { status: 409 }
-      );
-    }
+    // // Check for duplicate semester (since it's unique)
+    // const existing = await Course.findOne({ semester });
+    // if (existing) {
+    //   return NextResponse.json(
+    //     {
+    //       message: `Semester ${semester} already exists for course: ${existing.courseName}`,
+    //     },
+    //     { status: 409 }
+    //   );
+    // }
 
     const newCourse = new Course({
       courseName,
@@ -48,12 +48,12 @@ export async function POST(request) {
     // Remove JWT-specific error handling
     // if (error.name === 'JsonWebTokenError' || error.name === 'TokenExpiredError') { ... }
 
-    if (error.code === 11000) {
-      return NextResponse.json(
-        { message: 'Duplicate semester entry' },
-        { status: 409 }
-      );
-    }
+    // if (error.code === 11000) {
+    //   return NextResponse.json(
+    //     { message: 'Duplicate semester entry' },
+    //     { status: 409 }
+    //   );
+    // }
 
     return NextResponse.json(
       { message: 'Internal server error', error: error.message },
