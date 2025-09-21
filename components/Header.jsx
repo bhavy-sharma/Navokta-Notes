@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import LoginRequiredModal from './LoginRequiredModal';
+import { toast } from 'react-hot-toast';
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -35,8 +36,16 @@ export default function Header() {
     localStorage.removeItem('navokta_token');
     localStorage.removeItem('navokta_user');
     setUser(false);
+      // Show success toast
+  toast.success('Logged out successfully!', {
+    duration: 2500,
+    icon: '👋',
+  });
+
+  // Redirect after a tiny delay to let toast appear
+  setTimeout(() => {
     window.location.href = '/';
-    alert('Logged out successfully!');
+  }, 1000);
   };
 
   const handleCourseClick = (e) => {
