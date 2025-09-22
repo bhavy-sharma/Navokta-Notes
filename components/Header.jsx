@@ -226,7 +226,7 @@ export default function Header() {
                     Your Profile
                   </Link>
                   <Link
-                    href="/my-courses"
+                    href="/courses"
                     className="flex items-center p-2 text-gray-300 hover:text-white hover:bg-white/10 rounded transition"
                     onClick={() => setIsMenuOpen(false)}
                   >
