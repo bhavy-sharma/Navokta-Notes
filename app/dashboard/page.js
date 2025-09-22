@@ -124,9 +124,16 @@ export default function DashboardPage() {
         <div className="bg-black/40 backdrop-blur-sm border border-gray-800 rounded-2xl p-6 mb-10">
           <div className="flex items-center space-x-4">
             <Image
-              src={user.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=1e40af&color=fff`}
+              src={
+                user.avatar
+                  ? user.avatar
+                  : `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=1e40af&color=ffffff`
+              }
               alt="Profile"
-              className="w-16 h-16 rounded-full border-2 border-blue-500/50"
+              width={64}
+              height={64}
+              className="rounded-full border-2 border-blue-500/50"
+              unoptimized
             />
             <div>
               <h2 className="text-xl font-semibold">{user.name}</h2>
