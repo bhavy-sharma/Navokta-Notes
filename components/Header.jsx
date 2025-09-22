@@ -36,16 +36,16 @@ export default function Header() {
     localStorage.removeItem('navokta_token');
     localStorage.removeItem('navokta_user');
     setUser(false);
-      // Show success toast
-  toast.success('Logged out successfully!', {
-    duration: 1500,
-    icon: '👋',
-  });
+    // Show success toast
+    toast.success('Logged out successfully!', {
+      duration: 1500,
+      icon: '👋',
+    });
 
-  // Redirect after a tiny delay to let toast appear
-  setTimeout(() => {
-    window.location.href = '/';
-  }, 1000);
+    // Redirect after a tiny delay to let toast appear
+    setTimeout(() => {
+      window.location.href = '/';
+    }, 1000);
   };
 
   const handleCourseClick = (e) => {
@@ -83,7 +83,32 @@ export default function Header() {
           </Link>
 
           {/* Desktop Nav */}
-          <nav className="hidden md:flex items-center space-x-10">
+          <nav className="hidden md:flex items-center space-x-8">
+            {/* 👇 Added Home */}
+            <Link
+              href="/"
+              className={`font-medium transition cursor-pointer ${
+                isScrolled
+                  ? 'text-gray-300 hover:text-white'
+                  : 'text-gray-300 hover:text-white'
+              }`}
+            >
+              Home
+            </Link>
+
+            {/* 👇 Added About */}
+            {/* <Link
+              href="/about"
+              className={`font-medium transition cursor-pointer ${
+                isScrolled
+                  ? 'text-gray-300 hover:text-white'
+                  : 'text-gray-300 hover:text-white'
+              }`}
+            >
+              About
+            </Link> */}
+
+            {/* Existing Courses Link */}
             <Link
               href={user ? "/courses" : "#"}
               onClick={handleCourseClick}
@@ -187,9 +212,34 @@ export default function Header() {
         {isMenuOpen && (
           <div className="md:hidden bg-black/95 backdrop-blur-sm border-t border-gray-800">
             <div className="px-6 py-4 flex flex-col space-y-4 text-sm">
+              {/* 👇 Added Home */}
+              <Link
+                href="/"
+                className="text-gray-300 hover:text-white transition"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Home
+              </Link>
+
+              {/* 👇 Added About
+              <Link
+                href="/about"
+                className="text-gray-300 hover:text-white transition"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                About
+              </Link> */}
+
+              {/* Existing Courses Link */}
               <Link
                 href={user ? "/courses" : "#"}
-                onClick={handleCourseClick}
+                onClick={(e) => {
+                  if (!user) {
+                    e.preventDefault();
+                    setShowLoginModal(true);
+                  }
+                  setIsMenuOpen(false);
+                }}
                 className={`transition cursor-pointer ${
                   !user ? 'opacity-60 cursor-not-allowed' : 'text-gray-300 hover:text-white'
                 }`}

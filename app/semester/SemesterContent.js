@@ -3,6 +3,7 @@
 
 import { useRouter, useSearchParams } from 'next/navigation'
 import React, { useState, useEffect } from 'react'
+import Header from "@/components/Header"; // 👈 Your Header component
 
 export default function SemesterContent() {
   const router = useRouter()
@@ -57,9 +58,13 @@ export default function SemesterContent() {
       <div className="absolute top-24 -left-32 w-96 h-96 bg-purple-600/5 rounded-full blur-3xl"></div>
       <div className="absolute bottom-32 -right-32 w-96 h-96 bg-indigo-600/5 rounded-full blur-3xl"></div>
 
+
+      {/* 👇 Add Header — ensure it doesn't overlap */}
+      <Header />
+
       {/* Header — Hero Style with Gradient Animation */}
-      <header className="semester-header relative z-10 px-6 py-16 bg-gradient-to-r from-slate-900 via-purple-900/30 to-slate-900 border-b border-slate-700/50 backdrop-blur-sm">
-        <div className="max-w-4xl mx-auto text-center">
+      <header className="semester-header relative z-10 px-6 py-16 bg-gradient-to-r from-slate-900 via-purple-900/30 to-slate-900 border-b border-slate-700/50 backdrop-blur-sm ">
+        <div className="max-w-4xl mx-auto text-center mt-6">
           <div className="inline-flex items-center px-4 py-2 bg-purple-900/30 border border-purple-500/30 rounded-full mb-4">
             <span className="text-purple-300 text-xs font-bold tracking-wider">COURSE</span>
           </div>
