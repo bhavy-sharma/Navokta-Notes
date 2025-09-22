@@ -148,7 +148,7 @@ export default function Header() {
                     Your Profile
                   </Link>
                   <Link
-                    href="/my-courses"
+                    href="/courses"
                     className="flex items-center px-4 py-3 text-gray-300 hover:text-white hover:bg-white/10 border-b border-gray-800"
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-3 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
