@@ -38,7 +38,7 @@ export default function Header() {
     setUser(false);
       // Show success toast
   toast.success('Logged out successfully!', {
-    duration: 2500,
+    duration: 1500,
     icon: '👋',
   });
 
