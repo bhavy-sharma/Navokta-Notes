@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import Header from "@/components/Header"; // 👈 Your Header component
 
 export default function CoursesPage() {
   const router = useRouter();
@@ -78,11 +79,14 @@ export default function CoursesPage() {
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white relative">
       {/* Floating Background Orbs */}
       <div className="absolute top-20 -left-20 w-40 h-40 sm:w-72 sm:h-72 bg-purple-600/10 rounded-full blur-3xl"></div>
-      <div className="absolute bottom-20 -right-20 w-40 h-40 sm:w-72 sm:h-72 bg-indigo-600/10 rounded-full blur-3xl"></div>
+      {/* <div className="absolute bottom-20 -right-20 w-40 h-40 sm:w-72 sm:h-72 bg-indigo-600/10 rounded-full blur-3xl"></div> */}
 
-      {/* Header */}
-      <header className="relative z-10 backdrop-blur-sm bg-slate-900/60 border-b border-slate-700/50 px-4 sm:px-6 py-10 sm:py-12">
-        <div className="max-w-7xl mx-auto text-center">
+      {/* 👇 Add Header — ensure it doesn't overlap */}
+      <Header />
+
+      {/* 👇 Add spacing below Header to prevent overlap */}
+      <header className="relative z-10 backdrop-blur-sm bg-slate-900/60 border-b border-slate-700/50 px-4 sm:px-6 py-10 sm:py-12 mt-4">
+        <div className="max-w-7xl mx-auto text-center mt-4">
           <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold bg-gradient-to-r from-white via-gray-200 to-purple-200 bg-clip-text text-transparent">
             Explore Courses
           </h1>
