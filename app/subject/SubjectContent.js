@@ -184,7 +184,7 @@ export default function SubjectContent() {
         )}
       </main>
 
-      <footer className="fixed bottom-8 left-1/2 transform -translate-x-1/2 z-50">
+      {/* <footer className="fixed bottom-8 left-1/2 transform -translate-x-1/2 z-50">
         <button
           onClick={handleBack}
           className="px-8 py-4 bg-gradient-to-r from-slate-800 to-slate-700 hover:from-slate-700 hover:to-slate-600 text-gray-300 font-medium rounded-2xl border border-slate-600/50 shadow-xl hover:shadow-blue-900/20 backdrop-blur-sm transition-all duration-300 flex items-center space-x-2 hover:scale-105 active:scale-95"
@@ -195,7 +195,7 @@ export default function SubjectContent() {
           </svg>
           <span>Back to Courses</span>
         </button>
-      </footer>
+      </footer> */}
 
       <style jsx global>{`
         @keyframes gradient-x {
