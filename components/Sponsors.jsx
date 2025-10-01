@@ -20,8 +20,8 @@ export default function Sponsors() {
     };
   }, []);
 
-  const handleDonate = () => {
-    const finalAmount = customAmount ? parseInt(customAmount) : amount;
+  const handleDonate = async () => {
+    const finalAmount = customAmount ? parseInt(customAmount, 10) : amount;
 
     if (!finalAmount || finalAmount < 1) {
       alert('Please enter a valid amount (minimum ₹1)');
@@ -35,46 +35,65 @@ export default function Sponsors() {
 
     setLoading(true);
 
-    const options = {
-      key: 'rzp_live_N9mbth8Ttc6K2i', // 🔥 Replace with your Razorpay Key
-      amount: finalAmount * 100, // in paise
-      currency: 'INR',
-      name: 'Navokta Notes',
-      description: 'Support Free Education for Students',
-      image: '/logo.png', // Add your logo in public/logo.png
-      handler: function (response) {
-        alert(
-          `🎉 Thank you for your support!\n\nTransaction ID: ${response.razorpay_payment_id}\nAmount: ₹${finalAmount}\n\nYou're powering free education.`
-        );
-        setLoading(false);
-      },
-      prefill: {
-        name: 'Supporter',
-        email: '',
-        contact: '',
-      },
-      theme: {
-        color: '#f59e0b', // Amber (matches Navokta Notes)
-      },
-      modal: {
-        escape: false,
-        backdropclose: false,
-      },
-    };
-
     try {
+      // Step 1: Create order on backend
+      const orderRes = await fetch('/api/create-razorpay-order', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ amount: finalAmount }),
+      });
+
+      if (!orderRes.ok) {
+        const err = await orderRes.json();
+        throw new Error(err.error || 'Failed to create payment order');
+      }
+
+      const { orderId } = await orderRes.json();
+
+      // Step 2: Open Razorpay checkout
+      const options = {
+        key: 'rzp_live_N9mbth8Ttc6K2i',
+        amount: finalAmount * 100, // in paise
+        currency: 'INR',
+        name: 'Navokta Notes',
+        description: 'Support Free Education for Students',
+        image: '/logo.png',
+        order_id: orderId, // 🔑 critical for security
+        handler: function (response) {
+          alert(
+            `🎉 Thank you for your support!\n\nTransaction ID: ${response.razorpay_payment_id}\nAmount: ₹${finalAmount}\n\nYou're powering free education.`
+          );
+          setLoading(false);
+        },
+        prefill: {
+          name: 'Supporter',
+          email: '',
+          contact: '',
+        },
+        theme: {
+          color: '#f59e0b', // Amber
+        },
+        modal: {
+          escape: false,
+          backdropclose: false,
+        },
+      };
+
       const rzp = new window.Razorpay(options);
       rzp.open();
     } catch (error) {
-      alert('Payment failed: ' + error.message);
+      alert('Payment setup failed: ' + (error.message || 'Unknown error'));
       setLoading(false);
     }
   };
 
   return (
-    <section className="relative py-16 text-center" style={{
-      background: 'radial-gradient(circle at center, #0a0a0a, #000)',
-    }}>
+    <section
+      className="relative py-16 text-center"
+      style={{
+        background: 'radial-gradient(circle at center, #0a0a0a, #000)',
+      }}
+    >
       {/* Background Grid */}
       <div
         className="absolute inset-0 opacity-5"
