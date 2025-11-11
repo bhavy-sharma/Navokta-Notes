@@ -88,7 +88,7 @@ export default function Header() {
             </Link>
 
             {/* 👇 ABOUT */}
-            {/* <Link
+            <Link
               href="/about"
               className="group flex items-center space-x-2 px-3 py-2 rounded-xl text-gray-300 hover:text-white hover:bg-white/5 transition-all duration-300"
             >
@@ -96,7 +96,7 @@ export default function Header() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
               <span>About</span>
-            </Link> */}
+            </Link>
 
             {/* Auth or Profile */}
             {!user ? (
@@ -222,7 +222,7 @@ export default function Header() {
               </Link>
 
               {/* About */}
-              {/* <Link
+              <Link
                 href="/about"
                 className="flex items-center p-3 rounded-xl text-gray-300 hover:text-white hover:bg-white/5 transition-all duration-200 group"
                 onClick={toggleMenu}
@@ -231,7 +231,7 @@ export default function Header() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
                 About
-              </Link> */}
+              </Link>
 
               {/* Bhavy SHarma */}
 
