@@ -3,40 +3,7 @@
 import { NextResponse } from 'next/server';
 import mongoose from 'mongoose';
 import Resource from '@/models/Resource';
-
-// Enhanced connection function — NEVER returns true unless readyState === 1
-async function connectDB() {
-  try {
-    if (mongoose.connection.readyState === 1) {
-      console.log('✅ Already connected to MongoDB');
-      return true;
-    }
-
-    if (mongoose.connection.readyState === 2) {
-      console.log('🟡 Connecting... waiting for MongoDB');
-      await new Promise((resolve, reject) => {
-        const timeout = setTimeout(() => reject(new Error('Connection timeout')), 10000);
-        mongoose.connection.once('open', () => {
-          clearTimeout(timeout);
-          resolve();
-        });
-      });
-      return true;
-    }
-
-    console.log('🔌 Connecting to MongoDB...');
-    await mongoose.connect(process.env.MONGODB_URI, {
-      serverSelectionTimeoutMS: 5000,
-      socketTimeoutMS: 45000,
-    });
-
-    console.log('✅ Connected to MongoDB successfully');
-    return true;
-  } catch (error) {
-    console.error('❌ MongoDB connection failed:', error.message || error);
-    return false;
-  }
-}
+import connectDB from '@/lib/dbConnect';
 
 export async function GET(request) {
   try {
