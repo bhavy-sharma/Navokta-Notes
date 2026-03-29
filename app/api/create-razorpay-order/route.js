@@ -1,15 +1,20 @@
 // app/api/create-razorpay-order/route.js
 import { NextRequest, NextResponse } from 'next/server';
 
-const RAZORPAY_KEY_ID = process.env.RAZORPAY_KEY_ID;
-const RAZORPAY_KEY_SECRET = process.env.RAZORPAY_KEY_SECRET;
+// Force Node.js runtime for Buffer support
+export const runtime = 'nodejs';
 
-if (!RAZORPAY_KEY_ID || !RAZORPAY_KEY_SECRET) {
-  throw new Error('Razorpay credentials are missing in environment variables');
-}
+import Razorpay from 'razorpay';
 
 export async function POST(request) {
   try {
+    const RAZORPAY_KEY_ID = process.env.RAZORPAY_KEY_ID;
+    const RAZORPAY_KEY_SECRET = process.env.RAZORPAY_KEY_SECRET;
+
+    if (!RAZORPAY_KEY_ID || !RAZORPAY_KEY_SECRET) {
+      throw new Error('Razorpay credentials are missing in environment variables');
+    }
+
     const { amount } = await request.json();
 
     if (!amount || amount < 1 || amount > 100000) {
@@ -21,40 +26,28 @@ export async function POST(request) {
 
     const amountInPaise = Math.round(amount * 100);
 
-    // Create order via Razorpay API
-    const response = await fetch('https://api.razorpay.com/v1/orders', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization:
-          'Basic ' +
-          Buffer.from(`${RAZORPAY_KEY_ID}:${RAZORPAY_KEY_SECRET}`).toString('base64'),
-      },
-      body: JSON.stringify({
-        amount: amountInPaise,
-        currency: 'INR',
-        receipt: `receipt_${Date.now()}`,
-        notes: {
-          description: 'Support Free Education for Students',
-        },
-      }),
+    // Initialize Razorpay SDK instance
+    const instance = new Razorpay({
+      key_id: RAZORPAY_KEY_ID,
+      key_secret: RAZORPAY_KEY_SECRET,
     });
 
-    const order = await response.json();
+    const options = {
+      amount: amountInPaise,
+      currency: 'INR',
+      receipt: `receipt_${Date.now()}`,
+      notes: { description: 'Support Free Education for Students' }
+    };
 
-    if (!response.ok) {
-      console.error('Razorpay order creation failed:', order);
-      return NextResponse.json(
-        { error: 'Failed to create Razorpay order' },
-        { status: response.status }
-      );
-    }
+    const order = await instance.orders.create(options);
 
     return NextResponse.json({
       orderId: order.id,
       amount: order.amount,
       currency: order.currency,
+      key: RAZORPAY_KEY_ID, // Frontend ko initialize karne ke liye
     });
+
   } catch (error) {
     console.error('Error in /api/create-razorpay-order:', error);
     return NextResponse.json(

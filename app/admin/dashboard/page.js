@@ -2,16 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Client, Storage, ID } from "appwrite";
 import toast from 'react-hot-toast';
-
-// Appwrite client setup
-const client = new Client()
-  .setEndpoint("https://fra.cloud.appwrite.io/v1")
-  .setProject("68caf72f0002e28a73fa");
-
-const storage = new Storage(client);
-const BUCKET_ID = "68caf88800108cc7dd8d";
+import AdminManageList from '../../../components/AdminManageList';
 
 // 👇 HARDCODED ADMIN EMAIL — CHANGE THIS AS NEEDED
 const ALLOWED_ADMIN_EMAIL = 'codershab@gmail.com';
@@ -87,92 +79,40 @@ export default function AdminDashboard() {
     setUploadedUrl('');
   };
 
-  // Upload PDF directly to Appwrite Storage
-  const handleAppwriteUpload = async () => {
-    if (!file) {
-      // alert('Please select a PDF file!');
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    if (uploadData.fileType === 'PDF' && !file) {
       toast.error('Please select a PDF file!');
-      return null;
+      return;
+    }
+    if (uploadData.fileType !== 'PDF' && !uploadData.link) {
+      toast.error('Please provide a valid link.');
+      return;
     }
 
     setUploading(true);
 
-    try {
-      const uploadedFile = await storage.createFile(
-        BUCKET_ID,
-        ID.unique(),
-        file
-      );
-
-      const pdfUrl =
-        client.config.endpoint +
-        "/storage/buckets/" +
-        BUCKET_ID +
-        "/files/" +
-        uploadedFile.$id +
-        "/view?project=" +
-        client.config.project;
-
-      setUploading(false);
-      setUploadedUrl(pdfUrl);
-      return pdfUrl;
-    } catch (err) {
-      console.error("Appwrite upload error:", err);
-      setUploading(false);
-      // alert('Upload failed: ' + (err.message || 'Unknown error'));
-      toast.error('Upload failed: ' + (err.message || 'Unknown error'));
-      return null;
-    }
-  };
-
-  // Submit resource
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
-    let finalLink = uploadData.link;
-
+    const formData = new FormData();
+    formData.append("subject", uploadData.subject);
+    formData.append("courseName", uploadData.courseName);
+    formData.append("semester", uploadData.semester.toString());
+    formData.append("fileType", uploadData.fileType);
+    
     if (uploadData.fileType === 'PDF') {
-      if (!file && !uploadedUrl) {
-        // alert('Please select a PDF file!');
-        toast.error('Please select a PDF file!');
-        return;
-      }
-
-      if (file && !uploadedUrl) {
-        finalLink = await handleAppwriteUpload();
-        if (!finalLink) return;
-      } else if (uploadedUrl) {
-        finalLink = uploadedUrl;
-      }
+      formData.append("file", file);
+    } else {
+      formData.append("link", uploadData.link);
     }
-
-    if (!finalLink) {
-      // alert('Please provide a valid link or upload a file.');
-      toast.error('Please provide a valid link or upload a file.');
-      return;
-    }
-
-    const payload = {
-      subject: uploadData.subject,
-      courseName: uploadData.courseName,
-      semester: parseInt(uploadData.semester, 10),
-      fileType: uploadData.fileType,
-      link: finalLink,
-    };
 
     try {
-      // ⚠️ No Authorization header
       const res = await fetch('/api/admin/upload', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(payload),
+        body: formData,
       });
 
       const result = await res.json();
       if (res.ok) {
-        // alert('✅ Resource uploaded successfully!');
         toast.success('Resource uploaded successfully!');
         setUploadData({
           subject: '',
@@ -186,12 +126,12 @@ export default function AdminDashboard() {
         const fileInput = document.querySelector('input[type="file"]');
         if (fileInput) fileInput.value = '';
       } else {
-        // alert('Error: ' + result.message);
-        toast.error('Error: ' + result.message)
+        toast.error('Error: ' + result.message);
       }
     } catch (err) {
-      // alert('Network error: ' + err.message);
-      toast.error('Network error: ' + err.message)
+      toast.error('Network error: ' + err.message);
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -785,6 +725,10 @@ export default function AdminDashboard() {
             </div>
           </div>
         </div>
+        
+        {/* Render Manage List */}
+        <AdminManageList />
+
       </div>
     </div>
   );

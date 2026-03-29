@@ -52,18 +52,37 @@ export default function Sponsors() {
 
       // Step 2: Open Razorpay checkout
       const options = {
-        key: 'rzp_live_N9mbth8Ttc6K2i',
+        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
         amount: finalAmount * 100, // in paise
         currency: 'INR',
         name: 'Navokta Notes',
         description: 'Support Free Education for Students',
         image: '/logo.png',
         order_id: orderId, // 🔑 critical for security
-        handler: function (response) {
-          alert(
-            `🎉 Thank you for your support!\n\nTransaction ID: ${response.razorpay_payment_id}\nAmount: ₹${finalAmount}\n\nYou're powering free education.`
-          );
-          setLoading(false);
+        handler: async function (response) {
+          try {
+            const verifyRes = await fetch('/api/verify-razorpay-order', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_signature: response.razorpay_signature,
+              }),
+            });
+            const verifyData = await verifyRes.json();
+            
+            if (verifyRes.ok) {
+              alert(`🎉 Thank you for your support!\n\nTransaction ID: ${response.razorpay_payment_id}\nAmount: ₹${finalAmount}\n\nYou're powering free education.`);
+            } else {
+              alert(`Verification Failed: ${verifyData.error || 'Unknown error'}`);
+            }
+          } catch (err) {
+            console.error(err);
+            alert('Something went wrong during payment verification.');
+          } finally {
+            setLoading(false);
+          }
         },
         prefill: {
           name: 'Supporter',

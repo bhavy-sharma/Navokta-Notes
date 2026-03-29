@@ -64,40 +64,19 @@ export async function GET(request) {
     const courseName = url.searchParams.get('courseName');
     const semester = url.searchParams.get('semester');
 
-    console.log('📥 Query params:', { courseName, semester });
-
-    // Validate required params
-    if (!courseName || !semester) {
-      return NextResponse.json(
-        { success: false, error: 'Missing courseName or semester parameter' },
-        { status: 400 }
-      );
+    let query = {};
+    if (courseName) {
+      query.courseName = { $regex: new RegExp(courseName, 'i') };
     }
-
-    const semesterNum = parseInt(semester, 10);
-    if (isNaN(semesterNum)) {
-      return NextResponse.json(
-        { success: false, error: 'semester must be a valid number' },
-        { status: 400 }
-      );
+    if (semester) {
+      const semesterNum = parseInt(semester, 10);
+      if (!isNaN(semesterNum)) {
+        query.semester = semesterNum;
+      }
     }
-
-    // 🔍 Optional: Debug collections (comment out in production if causing issues)
-    /*
-    try {
-      const collections = await mongoose.connection.db.listCollections().toArray();
-      console.log('🗃️ Available collections:', collections.map(c => c.name));
-    } catch (dbError) {
-      console.warn('⚠️ Could not list collections:', dbError.message);
-      // Not critical — continue
-    }
-    */
 
     // Fetch resources
-    const resources = await Resource.find({
-      courseName: { $regex: new RegExp(courseName, 'i') },
-      semester: semesterNum
-    })
+    const resources = await Resource.find(query)
       .select('_id courseName semester subject fileType link dowloadedCount')
       .sort({ subject: 1 })
       .lean()
