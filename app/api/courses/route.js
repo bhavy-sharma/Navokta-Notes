@@ -8,6 +8,7 @@ export async function GET() {
   try {
     await connectDB();
     const courses = await Course.find({}).sort({ semester: 1 }); // ✅ Sort for better UX
+    console.log('Fetched Courses:', courses);
     return NextResponse.json(courses); // ✅ Clean response
   } catch (error) {
     console.error('GET Courses Error:', error);

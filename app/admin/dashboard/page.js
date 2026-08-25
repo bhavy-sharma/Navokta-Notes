@@ -1,9 +1,17 @@
-'use client';
+  'use client';
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { Client, Storage, ID } from "appwrite";
 import toast from 'react-hot-toast';
-import AdminManageList from '../../../components/AdminManageList';
+
+// Appwrite client setup
+const client = new Client()
+  .setEndpoint("https://fra.cloud.appwrite.io/v1")
+  .setProject("68caf72f0002e28a73fa");
+
+const storage = new Storage(client);
+const BUCKET_ID = "68caf88800108cc7dd8d";
 
 // 👇 HARDCODED ADMIN EMAIL — CHANGE THIS AS NEEDED
 const ALLOWED_ADMIN_EMAIL = 'codershab@gmail.com';
@@ -79,33 +87,81 @@ export default function AdminDashboard() {
     setUploadedUrl('');
   };
 
+  // Upload PDF directly to Appwrite Storage
+  const handleAppwriteUpload = async () => {
+    if (!file) {
+      // alert('Please select a PDF file!');
+      toast.error('Please select a PDF file!');
+      return null;
+    }
+
+  setUploading(true);
+
+    try {
+      const uploadedFile = await storage.createFile(
+        BUCKET_ID,
+        ID.unique(),
+        file
+      );
+
+      const pdfUrl =
+        client.config.endpoint +
+        "/storage/buckets/" +
+        BUCKET_ID +
+        "/files/" +
+        uploadedFile.$id +
+        "/view?project=" +
+        client.config.project;
+
+      setUploading(false);
+      setUploadedUrl(pdfUrl);
+      return pdfUrl;
+    } catch (err) {
+      console.error("Appwrite upload error:", err);
+      setUploading(false);
+      // alert('Upload failed: ' + (err.message || 'Unknown error'));
+      toast.error('Upload failed: ' + (err.message || 'Unknown error'));
+      return null;
+    }
+  };
+
+  // Submit resource
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (uploadData.fileType === 'PDF' && !file) {
-      toast.error('Please select a PDF file!');
-      return;
-    }
-    if (uploadData.fileType !== 'PDF' && !uploadData.link) {
-      toast.error('Please provide a valid link.');
-      return;
-    }
+    let finalLink = uploadData.link;
 
-    setUploading(true);
-
-    const formData = new FormData();
-    formData.append("subject", uploadData.subject);
-    formData.append("courseName", uploadData.courseName);
-    formData.append("semester", uploadData.semester.toString());
-    formData.append("fileType", uploadData.fileType);
-    
     if (uploadData.fileType === 'PDF') {
-      formData.append("file", file);
-    } else {
-      formData.append("link", uploadData.link);
+      if (!file && !uploadedUrl) {
+        // alert('Please select a PDF file!');
+        toast.error('Please select a PDF file!');
+        return;
+      }
+
+      if (file && !uploadedUrl) {
+        finalLink = await handleAppwriteUpload();
+        if (!finalLink) return;
+      } else if (uploadedUrl) {
+        finalLink = uploadedUrl;
+      }
     }
+
+    if (!finalLink) {
+      // alert('Please provide a valid link or upload a file.');
+      toast.error('Please provide a valid link or upload a file.');
+      return;
+    }
+
+    const payload = {
+      subject: uploadData.subject,
+      courseName: uploadData.courseName,
+      semester: parseInt(uploadData.semester, 10),
+      fileType: uploadData.fileType,
+      link: finalLink,
+    };
 
     try {
+      // ⚠️ No Authorization header
       const res = await fetch('/api/admin/upload', {
         method: 'POST',
         body: formData,
@@ -502,28 +558,28 @@ export default function AdminDashboard() {
               {/* YouTube or External Link */}
               {(uploadData.fileType === 'YouTubeLink' ||
                 uploadData.fileType === 'ExternalLink') && (
-                <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
-                    {uploadData.fileType === 'YouTubeLink'
-                      ? 'YouTube URL'
-                      : 'External Link'}
-                  </label>
-                  <input
-                    type="url"
-                    placeholder={
-                      uploadData.fileType === 'YouTubeLink'
-                        ? 'https://youtube.com/watch?v=...'
-                        : 'https://example.com/resource'
-                    }
-                    value={uploadData.link}
-                    onChange={(e) =>
-                      setUploadData({ ...uploadData, link: e.target.value })
-                    }
-                    className="w-full px-4 py-3 bg-black/60 border border-gray-600 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
-                    required
-                  />
-                </div>
-              )}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                      {uploadData.fileType === 'YouTubeLink'
+                        ? 'YouTube URL'
+                        : 'External Link'}
+                    </label>
+                    <input
+                      type="url"
+                      placeholder={
+                        uploadData.fileType === 'YouTubeLink'
+                          ? 'https://youtube.com/watch?v=...'
+                          : 'https://example.com/resource'
+                      }
+                      value={uploadData.link}
+                      onChange={(e) =>
+                        setUploadData({ ...uploadData, link: e.target.value })
+                      }
+                      className="w-full px-4 py-3 bg-black/60 border border-gray-600 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      required
+                    />
+                  </div>
+                )}
 
               <button
                 type="submit"
