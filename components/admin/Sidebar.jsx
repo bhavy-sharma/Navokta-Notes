@@ -1,53 +1,21 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState } from 'react';
 
 export default function Sidebar({ activeTab, setActiveTab, router }) {
   const [isOpen, setIsOpen] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
-
-  // Check if screen is mobile
-  useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
-
-  // Close sidebar when route changes (for mobile)
-  useEffect(() => {
-    setIsOpen(false);
-  }, [activeTab]);
 
   const tabs = [
     { id: 'dashboard', label: 'Dashboard', icon: '📊' },
     { id: 'notes', label: 'Notes', icon: '📝' },
     { id: 'courses', label: 'Courses', icon: '📚' },
     { id: 'admins', label: 'Admins', icon: '👥' },
+    { id: 'users', label: 'Users', icon: '👤' }, // 👈 New Tab
   ];
 
   const handleTabClick = (tabId) => {
     setActiveTab(tabId);
-    if (isMobile) {
-      setIsOpen(false);
-    }
-  };
-
-  const handleHomeClick = () => {
-    router.push('/');
-    if (isMobile) {
-      setIsOpen(false);
-    }
-  };
-
-  const handleLogout = () => {
-    router.push('/');
-    if (isMobile) {
-      setIsOpen(false);
-    }
+    setIsOpen(false);
   };
 
   return (
@@ -120,20 +88,23 @@ export default function Sidebar({ activeTab, setActiveTab, router }) {
           ))}
         </nav>
 
-        {/* Bottom Section - Fixed at bottom with proper spacing */}
+        {/* Bottom Section */}
         <div className="flex-shrink-0 border-t border-purple-500/20 bg-black/50 backdrop-blur-sm p-3 sm:p-4 space-y-2">
-          {/* Home Button */}
           <button
-            onClick={handleHomeClick}
+            onClick={() => {
+              router.push('/');
+              setIsOpen(false);
+            }}
             className="w-full flex items-center justify-center space-x-2 sm:space-x-3 px-4 py-2.5 sm:py-3 rounded-xl text-blue-400 hover:bg-blue-500/10 transition-all duration-200 text-sm sm:text-base group"
           >
             <span className="text-lg sm:text-xl group-hover:scale-110 transition-transform">🏠</span>
             <span className="font-medium">Home</span>
           </button>
-
-          {/* Logout Button */}
           <button
-            onClick={handleLogout}
+            onClick={() => {
+              router.push('/');
+              setIsOpen(false);
+            }}
             className="w-full flex items-center justify-center space-x-2 sm:space-x-3 px-4 py-2.5 sm:py-3 rounded-xl text-red-400 hover:bg-red-500/10 transition-all duration-200 text-sm sm:text-base group"
           >
             <span className="text-lg sm:text-xl group-hover:scale-110 transition-transform">🚪</span>
