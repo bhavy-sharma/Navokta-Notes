@@ -52,10 +52,13 @@ importers:
         version: 16.2.1(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       next-auth:
         specifier: ^4.24.11
-        version: 4.24.11(next@16.2.1(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+        version: 4.24.11(next@16.2.1(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(nodemailer@9.0.6)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       next-connect:
         specifier: ^1.0.0
         version: 1.0.0
+      nodemailer:
+        specifier: ^9.0.6
+        version: 9.0.6
       razorpay:
         specifier: ^2.9.6
         version: 2.9.6
@@ -1815,6 +1818,10 @@ packages:
         optional: true
       sass:
         optional: true
+
+  nodemailer@9.0.6:
+    resolution: {integrity: sha512-IQUGFdhdGwI9+AWX+FpUt4DLmvFaOjTMEoneTIWX/RXxuy1TdenPwWrvFMSfLkPKl+HQEXWuSAxEMMbPYXtBmg==}
+    engines: {node: '>=6.0.0'}
 
   oauth@0.9.15:
     resolution: {integrity: sha512-a5ERWK1kh38ExDEfoO6qUHJb32rd7aYmPHuyCu3Fta/cnICvYmgd2uhuKXvPD+PXB+gCEYYEaQdIRAjCOwAKNA==}
@@ -4066,7 +4073,7 @@ snapshots:
 
   natural-compare@1.4.0: {}
 
-  next-auth@4.24.11(next@16.2.1(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react-dom@19.2.4(react@19.2.4))(react@19.2.4):
+  next-auth@4.24.11(next@16.2.1(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(nodemailer@9.0.6)(react-dom@19.2.4(react@19.2.4))(react@19.2.4):
     dependencies:
       '@babel/runtime': 7.28.4
       '@panva/hkdf': 1.2.1
@@ -4080,6 +4087,8 @@ snapshots:
       react: 19.2.4
       react-dom: 19.2.4(react@19.2.4)
       uuid: 8.3.2
+    optionalDependencies:
+      nodemailer: 9.0.6
 
   next-connect@1.0.0:
     dependencies:
@@ -4109,6 +4118,8 @@ snapshots:
     transitivePeerDependencies:
       - '@babel/core'
       - babel-plugin-macros
+
+  nodemailer@9.0.6: {}
 
   oauth@0.9.15: {}
 
