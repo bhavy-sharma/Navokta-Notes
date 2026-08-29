@@ -10,6 +10,7 @@ export default function AdminsTable({
   editingAdminId,
   isRefreshing,
   onRefresh,
+  searchQuery,
 }) {
   const handleDelete = (adminId, adminName) => {
     toast((t) => (
@@ -63,10 +64,37 @@ export default function AdminsTable({
     );
   }
 
+  // Empty state
+  if (admins.length === 0) {
+    return (
+      <div className="bg-black/40 backdrop-blur-sm border border-purple-500/20 rounded-2xl sm:rounded-3xl p-6 sm:p-8">
+        <div className="text-center py-12">
+          <div className="text-6xl mb-4">👥</div>
+          <h3 className="text-lg font-semibold text-white mb-2">
+            {searchQuery ? 'No matching admins found' : 'No admins available'}
+          </h3>
+          <p className="text-gray-400 text-sm">
+            {searchQuery 
+              ? `Try adjusting your search "${searchQuery}"`
+              : 'Add your first admin using the form above'
+            }
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="bg-black/40 backdrop-blur-sm border border-purple-500/20 rounded-2xl sm:rounded-3xl p-3 sm:p-4 md:p-6 lg:p-8">
       <div className="flex items-center justify-between mb-3 sm:mb-4">
-        <h3 className="text-base sm:text-lg md:text-xl font-semibold text-white">Existing Admins</h3>
+        <h3 className="text-base sm:text-lg md:text-xl font-semibold text-white">
+          Admins
+          {searchQuery && (
+            <span className="ml-2 text-sm text-gray-400 font-normal">
+              ({admins.length} results)
+            </span>
+          )}
+        </h3>
         <button
           onClick={onRefresh}
           className="text-purple-400 hover:text-purple-300 hover:bg-purple-500/10 px-3 py-1.5 rounded-lg transition-colors text-sm flex items-center gap-2"
@@ -81,50 +109,42 @@ export default function AdminsTable({
       
       {/* Mobile Card View */}
       <div className="sm:hidden space-y-3">
-        {admins.length === 0 ? (
-          <div className="text-center text-gray-500 py-8 text-sm">
-            No admins found. 
-            <br />
-            <span className="text-xs text-gray-600">Add your first admin using the form above.</span>
-          </div>
-        ) : (
-          admins.map((admin) => {
-            const isSuperAdmin = admin.email === superAdminEmail;
-            const isEditing = editingAdminId === admin._id;
+        {admins.map((admin) => {
+          const isSuperAdmin = admin.email === superAdminEmail;
+          const isEditing = editingAdminId === admin._id;
 
-            return (
-              <div
-                key={admin._id}
-                className={`bg-black/40 border border-purple-500/20 rounded-xl p-4 ${
-                  isEditing ? 'border-amber-500/50 bg-amber-500/10' : ''
-                }`}
-              >
-                <div className="font-medium text-white text-sm mb-1">{admin.name}</div>
-                <div className="text-xs text-gray-400 mb-2 truncate">{admin.email}</div>
-                {isSuperAdmin ? (
-                  <span className="text-xs text-gray-500 px-2 py-1 bg-white/5 rounded-lg border border-white/10 inline-block">
-                    👑 Super Admin
-                  </span>
-                ) : (
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => onEdit(admin)}
-                      className="flex-1 text-amber-400 hover:text-amber-300 hover:bg-amber-500/10 px-3 py-1.5 rounded-lg transition-colors text-sm"
-                    >
-                      Edit
-                    </button>
-                    <button
-                      onClick={() => handleDelete(admin._id, admin.name)}
-                      className="flex-1 text-red-400 hover:text-red-300 hover:bg-red-500/10 px-3 py-1.5 rounded-lg transition-colors text-sm"
-                    >
-                      Delete
-                    </button>
-                  </div>
-                )}
-              </div>
-            );
-          })
-        )}
+          return (
+            <div
+              key={admin._id}
+              className={`bg-black/40 border border-purple-500/20 rounded-xl p-4 ${
+                isEditing ? 'border-amber-500/50 bg-amber-500/10' : ''
+              }`}
+            >
+              <div className="font-medium text-white text-sm mb-1">{admin.name}</div>
+              <div className="text-xs text-gray-400 mb-2 truncate">{admin.email}</div>
+              {isSuperAdmin ? (
+                <span className="text-xs text-gray-500 px-2 py-1 bg-white/5 rounded-lg border border-white/10 inline-block">
+                  👑 Super Admin
+                </span>
+              ) : (
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => onEdit(admin)}
+                    className="flex-1 text-amber-400 hover:text-amber-300 hover:bg-amber-500/10 px-3 py-1.5 rounded-lg transition-colors text-sm"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    onClick={() => handleDelete(admin._id, admin.name)}
+                    className="flex-1 text-red-400 hover:text-red-300 hover:bg-red-500/10 px-3 py-1.5 rounded-lg transition-colors text-sm"
+                  >
+                    Delete
+                  </button>
+                </div>
+              )}
+            </div>
+          );
+        })}
       </div>
 
       {/* Desktop Table View */}
@@ -140,66 +160,56 @@ export default function AdminsTable({
             </tr>
           </thead>
           <tbody className="divide-y divide-purple-500/10">
-            {admins.length === 0 ? (
-              <tr>
-                <td colSpan="5" className="py-8 text-center text-gray-500 text-sm">
-                  No admins found.
-                  <br />
-                  <span className="text-xs text-gray-600">Add your first admin using the form above.</span>
-                </td>
-              </tr>
-            ) : (
-              admins.map((admin, index) => {
-                const isSuperAdmin = admin.email === superAdminEmail;
-                const isEditing = editingAdminId === admin._id;
+            {admins.map((admin, index) => {
+              const isSuperAdmin = admin.email === superAdminEmail;
+              const isEditing = editingAdminId === admin._id;
 
-                return (
-                  <tr
-                    key={admin._id}
-                    className={`hover:bg-white/5 transition-colors ${
-                      isEditing ? 'bg-amber-500/20' : ''
-                    }`}
-                  >
-                    <td className="py-3 text-xs md:text-sm text-gray-500">{index + 1}</td>
-                    <td className="py-3 text-xs md:text-sm font-medium text-white">{admin.name}</td>
-                    <td className="py-3 text-xs md:text-sm">{admin.email}</td>
-                    <td className="py-3">
-                      {isSuperAdmin ? (
-                        <span className="text-xs text-purple-400 px-2 py-1 bg-purple-500/10 rounded-lg border border-purple-500/20">
-                          👑 Super Admin
-                        </span>
-                      ) : (
-                        <span className="text-xs text-green-400 px-2 py-1 bg-green-500/10 rounded-lg border border-green-500/20">
-                          Admin
-                        </span>
-                      )}
-                    </td>
-                    <td className="py-3 text-right space-x-1 sm:space-x-2">
-                      {isSuperAdmin ? (
-                        <span className="text-gray-500 text-xs px-2 sm:px-3 py-1 bg-white/5 rounded-lg border border-white/10">
-                          Protected
-                        </span>
-                      ) : (
-                        <>
-                          <button
-                            onClick={() => onEdit(admin)}
-                            className="text-amber-400 hover:text-amber-300 hover:bg-amber-500/10 px-2 sm:px-3 py-1 rounded-lg transition-colors text-xs sm:text-sm"
-                          >
-                            Edit
-                          </button>
-                          <button
-                            onClick={() => handleDelete(admin._id, admin.name)}
-                            className="text-red-400 hover:text-red-300 hover:bg-red-500/10 px-2 sm:px-3 py-1 rounded-lg transition-colors text-xs sm:text-sm"
-                          >
-                            Delete
-                          </button>
-                        </>
-                      )}
-                    </td>
-                  </tr>
-                );
-              })
-            )}
+              return (
+                <tr
+                  key={admin._id}
+                  className={`hover:bg-white/5 transition-colors ${
+                    isEditing ? 'bg-amber-500/20' : ''
+                  }`}
+                >
+                  <td className="py-3 text-xs md:text-sm text-gray-500">{index + 1}</td>
+                  <td className="py-3 text-xs md:text-sm font-medium text-white">{admin.name}</td>
+                  <td className="py-3 text-xs md:text-sm">{admin.email}</td>
+                  <td className="py-3">
+                    {isSuperAdmin ? (
+                      <span className="text-xs text-purple-400 px-2 py-1 bg-purple-500/10 rounded-lg border border-purple-500/20">
+                        👑 Super Admin
+                      </span>
+                    ) : (
+                      <span className="text-xs text-green-400 px-2 py-1 bg-green-500/10 rounded-lg border border-green-500/20">
+                        Admin
+                      </span>
+                    )}
+                  </td>
+                  <td className="py-3 text-right space-x-1 sm:space-x-2">
+                    {isSuperAdmin ? (
+                      <span className="text-gray-500 text-xs px-2 sm:px-3 py-1 bg-white/5 rounded-lg border border-white/10">
+                        Protected
+                      </span>
+                    ) : (
+                      <>
+                        <button
+                          onClick={() => onEdit(admin)}
+                          className="text-amber-400 hover:text-amber-300 hover:bg-amber-500/10 px-2 sm:px-3 py-1 rounded-lg transition-colors text-xs sm:text-sm"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          onClick={() => handleDelete(admin._id, admin.name)}
+                          className="text-red-400 hover:text-red-300 hover:bg-red-500/10 px-2 sm:px-3 py-1 rounded-lg transition-colors text-xs sm:text-sm"
+                        >
+                          Delete
+                        </button>
+                      </>
+                    )}
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>
