@@ -1,59 +1,62 @@
-import { NextResponse } from "next/server";
-import connectDB from "@/lib/dbConnect";
-import Resource from "@/models/Resource";
-import { v2 as cloudinary } from 'cloudinary';
+import { NextResponse } from 'next/server';
+import connectDB from '@/lib/db';
+import Resource from '@/models/Resource';
 
-cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
-});
-
-export async function PUT(req, { params }) {
-  await connectDB();
+// UPDATE Resource
+export async function PUT(request, { params }) {
   try {
-    const { id } = params;
-    const { subject, courseName, semester, fileType, link } = await req.json();
-    
-    if (!id) return NextResponse.json({ error: "ID is required" }, { status: 400 });
+    await connectDB();
+    const { id } = await params;
+    const body = await request.json();
+    const { subject, courseName, semester, fileType, link } = body;
 
     const updatedResource = await Resource.findByIdAndUpdate(
       id,
       { subject, courseName, semester, fileType, link },
-      { new: true }
+      { new: true, runValidators: true }
     );
 
-    if (!updatedResource) return NextResponse.json({ error: "Resource not found" }, { status: 404 });
-    return NextResponse.json({ message: "Resource updated successfully", resource: updatedResource });
-  } catch (err) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    if (!updatedResource) {
+      return NextResponse.json(
+        { error: 'Resource not found' },
+        { status: 404 }
+      );
+    }
+
+    return NextResponse.json(updatedResource, { status: 200 });
+  } catch (error) {
+    console.error('Error updating resource:', error);
+    return NextResponse.json(
+      { error: 'Failed to update resource' },
+      { status: 500 }
+    );
   }
 }
 
-export async function DELETE(req, { params }) {
-  await connectDB();
+// DELETE Resource
+export async function DELETE(request, { params }) {
   try {
-    const { id } = params;
-    if (!id) return NextResponse.json({ error: "ID is required" }, { status: 400 });
+    await connectDB();
+    const { id } = await params;
 
-    const resource = await Resource.findById(id);
-    if (!resource) return NextResponse.json({ error: "Resource not found" }, { status: 404 });
+    const deletedResource = await Resource.findByIdAndDelete(id);
 
-    // Safely attempt to delete from Cloudinary if it's a PDF
-    if (resource.fileType === 'PDF' && resource.link && resource.link.includes('cloudinary.com')) {
-      const matches = resource.link.match(/\/upload\/(?:v\d+\/)?([^\.]+)/);
-      if (matches && matches[1] && process.env.CLOUDINARY_API_KEY) {
-        try {
-          await cloudinary.uploader.destroy(matches[1]);
-        } catch (cErr) {
-          console.error("Failed to delete from Cloudinary", cErr);
-        }
-      }
+    if (!deletedResource) {
+      return NextResponse.json(
+        { error: 'Resource not found' },
+        { status: 404 }
+      );
     }
 
-    await Resource.findByIdAndDelete(id);
-    return NextResponse.json({ message: "Resource deleted successfully" });
-  } catch (err) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    return NextResponse.json(
+      { message: 'Resource deleted successfully' },
+      { status: 200 }
+    );
+  } catch (error) {
+    console.error('Error deleting resource:', error);
+    return NextResponse.json(
+      { error: 'Failed to delete resource' },
+      { status: 500 }
+    );
   }
 }
