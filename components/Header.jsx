@@ -14,7 +14,6 @@ export default function Header() {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const pathname = usePathname();
   
-  // Ref for dropdown
   const dropdownRef = useRef(null);
   const dropdownTimeoutRef = useRef(null);
 
@@ -216,6 +215,27 @@ export default function Header() {
               <span className="hidden lg:inline">About</span>
             </Link>
 
+            {/* Contact - NEW */}
+            <Link
+              href="/contact"
+              className="group flex items-center gap-2 px-3 py-2 rounded-xl text-gray-300 hover:text-white hover:bg-white/5 transition-all duration-300"
+            >
+              <svg
+                className="h-5 w-5 text-cyan-400 group-hover:text-cyan-300 transition"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                />
+              </svg>
+              <span className="hidden lg:inline">Contact</span>
+            </Link>
+
             {/* Admin Dashboard Link - Only for admins */}
             {isAdmin && (
               <Link
@@ -328,6 +348,31 @@ export default function Header() {
                       />
                     </svg>
                     Home
+                  </Link>
+
+                  {/* Contact - NEW in dropdown */}
+                  <Link
+                    href="/contact"
+                    onClick={() => {
+                      closeMenu();
+                      setIsDropdownOpen(false);
+                    }}
+                    className="flex items-center px-5 py-3 text-gray-300 hover:text-white hover:bg-white/5 transition-all duration-200"
+                  >
+                    <svg
+                      className="h-5 w-5 mr-3 text-cyan-400"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                      />
+                    </svg>
+                    Contact
                   </Link>
 
                   <div className="px-4 py-3 border-b border-gray-800/60">
@@ -537,6 +582,28 @@ export default function Header() {
                   />
                 </svg>
                 About
+              </Link>
+
+              {/* Contact - NEW in mobile menu */}
+              <Link
+                href="/contact"
+                onClick={closeMenu}
+                className="flex items-center p-3 rounded-xl text-gray-300 hover:text-white hover:bg-white/5 transition-all duration-200 group"
+              >
+                <svg
+                  className="h-5 w-5 mr-3 text-cyan-400 group-hover:text-cyan-300"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                  />
+                </svg>
+                Contact
               </Link>
 
               {/* Admin Link - Mobile */}
