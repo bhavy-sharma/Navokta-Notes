@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import Header from "@/components/Header"; // 👈 Your Header component
+import Link from "next/link";
+import Header from "@/components/Header";
 
 export default function CoursesPage() {
   const router = useRouter();
@@ -34,6 +35,14 @@ export default function CoursesPage() {
         course.courseName
       )}&sem=${course.semester}`
     );
+  };
+
+  const handleBack = () => {
+    router.back();
+  };
+
+  const handleGoHome = () => {
+    router.push('/');
   };
 
   if (loading) {
@@ -79,36 +88,107 @@ export default function CoursesPage() {
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white relative">
       {/* Floating Background Orbs */}
       <div className="absolute top-20 -left-20 w-40 h-40 sm:w-72 sm:h-72 bg-purple-600/10 rounded-full blur-3xl"></div>
-      {/* <div className="absolute bottom-20 -right-20 w-40 h-40 sm:w-72 sm:h-72 bg-indigo-600/10 rounded-full blur-3xl"></div> */}
+      <div className="absolute bottom-20 -right-20 w-40 h-40 sm:w-72 sm:h-72 bg-indigo-600/10 rounded-full blur-3xl"></div>
 
-      {/* 👇 Add Header — ensure it doesn't overlap */}
+      {/* Header */}
       <Header />
 
-      {/* 👇 Add spacing below Header to prevent overlap */}
-      <header className="relative z-10 backdrop-blur-sm bg-slate-900/60 border-b border-slate-700/50 px-4 sm:px-6 py-10 sm:py-12 mt-4">
-        <div className="max-w-7xl mx-auto text-center mt-4">
-          <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold bg-gradient-to-r from-white via-gray-200 to-purple-200 bg-clip-text text-transparent">
-            Explore Courses
-          </h1>
-          <p className="text-gray-300 mt-3 sm:mt-4 text-sm sm:text-base max-w-xl mx-auto leading-relaxed">
-            Choose a course to dive into its semester materials, guided by expert instructors.
-          </p>
+      {/* ================= PAGE HEADER WITH BACK BUTTON ================= */}
+      <header className="relative z-10 backdrop-blur-sm bg-slate-900/60 border-b border-slate-700/50 px-4 sm:px-6 pt-20 sm:pt-24 pb-6 sm:pb-8">
+        <div className="max-w-7xl mx-auto">
+          {/* Navigation Row */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4 sm:mb-6">
+            <div className="flex items-center gap-3 sm:gap-4">
+              {/* Back Button */}
+              <button
+                onClick={handleBack}
+                className="group flex items-center gap-2 px-4 py-2.5 bg-white/5 hover:bg-white/10 rounded-xl text-gray-300 hover:text-white transition-all duration-300 border border-gray-700/50 hover:border-gray-600"
+                aria-label="Go back"
+              >
+                <svg
+                  className="w-5 h-5 transform group-hover:-translate-x-1 transition-transform duration-300"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M10 19l-7-7m0 0l7-7m-7 7h18"
+                  />
+                </svg>
+                <span className="hidden sm:inline">Back</span>
+              </button>
+
+
+              {/* Refresh Button */}
+              <button
+                onClick={fetchCourses}
+                className="group flex items-center gap-2 px-4 py-2.5 bg-white/5 hover:bg-white/10 rounded-xl text-gray-300 hover:text-white transition-all duration-300 border border-gray-700/50 hover:border-gray-600"
+                aria-label="Refresh courses"
+              >
+                <svg
+                  className="w-5 h-5 group-hover:rotate-180 transition-transform duration-500"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                  />
+                </svg>
+                <span className="hidden sm:inline">Refresh</span>
+              </button>
+            </div>
+
+            {/* Course Count */}
+            <div className="flex items-center gap-2 text-sm text-gray-400">
+              <span className="px-3 py-1.5 bg-slate-800/50 rounded-full border border-slate-700/50">
+                {courses.length} {courses.length === 1 ? 'Course' : 'Courses'} Available
+              </span>
+            </div>
+          </div>
+
+          {/* Title */}
+          <div className="text-center">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold bg-gradient-to-r from-white via-gray-200 to-purple-200 bg-clip-text text-transparent">
+              Explore Courses
+            </h1>
+            <p className="text-gray-300 mt-3 sm:mt-4 text-sm sm:text-base max-w-xl mx-auto leading-relaxed">
+              Choose a course to dive into its semester materials, guided by expert instructors.
+            </p>
+          </div>
         </div>
       </header>
 
-      {/* Main */}
-      <main className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 py-10 sm:py-16">
+      {/* ================= MAIN CONTENT ================= */}
+      <main className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
         {courses.length === 0 ? (
           <div className="text-center py-20 sm:py-32">
+            <div className="inline-flex items-center justify-center w-20 h-20 sm:w-24 sm:h-24 bg-slate-800/50 rounded-full mb-6">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 sm:h-12 sm:w-12 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+              </svg>
+            </div>
             <h3 className="text-lg sm:text-2xl font-medium text-gray-300 mb-2">
               No courses available yet
             </h3>
             <p className="text-gray-500 text-sm sm:text-base max-w-md mx-auto">
-              We’re working hard to bring you exciting new courses. Check back soon!
+              We're working hard to bring you exciting new courses. Check back soon!
             </p>
+            <button
+              onClick={handleGoHome}
+              className="mt-6 px-6 py-3 bg-purple-600 hover:bg-purple-700 rounded-lg text-white font-medium transition-colors"
+            >
+              ← Go Home
+            </button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
             {courses.map((course) => (
               <div
                 key={course._id}
@@ -130,7 +210,7 @@ export default function CoursesPage() {
                 {/* Instructor */}
                 {course.instructor && (
                   <p className="text-xs sm:text-sm text-indigo-300 mb-3">
-                    Instructor: {course.instructor}
+                    👨‍🏫 {course.instructor}
                   </p>
                 )}
 
@@ -159,11 +239,28 @@ export default function CoursesPage() {
                     />
                   </svg>
                 </div>
+
+                {/* Bottom Border Animation */}
+                <div className="absolute bottom-0 left-0 w-full h-0.5 bg-gradient-to-r from-transparent via-purple-400 to-transparent scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left"></div>
               </div>
             ))}
           </div>
         )}
       </main>
+
+      {/* ================= FLOATING BACK BUTTON (Mobile) ================= */}
+      <div className="fixed bottom-4 sm:bottom-6 left-1/2 transform -translate-x-1/2 z-50 sm:hidden">
+        <button
+          onClick={handleBack}
+          className="px-6 py-3 bg-gradient-to-r from-slate-800 to-slate-700 hover:from-slate-700 hover:to-slate-600 text-gray-300 font-medium rounded-2xl border border-slate-600/50 shadow-xl hover:shadow-purple-900/20 backdrop-blur-sm transition-all duration-300 flex items-center space-x-2 hover:scale-105 active:scale-95"
+          aria-label="Go back"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+          </svg>
+          <span>Back</span>
+        </button>
+      </div>
     </div>
   );
 }
