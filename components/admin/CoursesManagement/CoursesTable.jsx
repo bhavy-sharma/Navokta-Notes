@@ -2,7 +2,13 @@
 
 import toast from 'react-hot-toast';
 
-export default function CoursesTable({ courses, onDelete, onEdit, editingCourseId }) {
+export default function CoursesTable({ 
+  courses, 
+  onDelete, 
+  onEdit, 
+  editingCourseId,
+  searchQuery 
+}) {
   const handleDelete = (courseId) => {
     toast((t) => (
       <div className="bg-gray-800 text-white p-4 sm:p-6 rounded-lg shadow-xl max-w-xs sm:max-w-sm mx-4">
@@ -36,42 +42,65 @@ export default function CoursesTable({ courses, onDelete, onEdit, editingCourseI
     });
   };
 
+  // Empty state
+  if (courses.length === 0) {
+    return (
+      <div className="bg-black/40 backdrop-blur-sm border border-purple-500/20 rounded-2xl sm:rounded-3xl p-6 sm:p-8">
+        <div className="text-center py-12">
+          <div className="text-6xl mb-4">📚</div>
+          <h3 className="text-lg font-semibold text-white mb-2">
+            {searchQuery ? 'No matching courses found' : 'No courses available'}
+          </h3>
+          <p className="text-gray-400 text-sm">
+            {searchQuery 
+              ? `Try adjusting your search "${searchQuery}"`
+              : 'Add your first course using the form above'
+            }
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="bg-black/40 backdrop-blur-sm border border-purple-500/20 rounded-2xl sm:rounded-3xl p-3 sm:p-4 md:p-6 lg:p-8">
-      <h3 className="text-base sm:text-lg md:text-xl font-semibold text-white mb-3 sm:mb-4">Existing Courses</h3>
+      <h3 className="text-base sm:text-lg md:text-xl font-semibold text-white mb-3 sm:mb-4">
+        Courses
+        {searchQuery && (
+          <span className="ml-2 text-sm text-gray-400 font-normal">
+            ({courses.length} results)
+          </span>
+        )}
+      </h3>
       
       {/* Mobile Card View */}
       <div className="sm:hidden space-y-3">
-        {courses.length === 0 ? (
-          <div className="text-center text-gray-500 py-4 text-sm">No courses found.</div>
-        ) : (
-          courses.map((course) => (
-            <div
-              key={course._id}
-              className={`bg-black/40 border border-purple-500/20 rounded-xl p-4 ${
-                editingCourseId === course._id ? 'border-amber-500/50 bg-amber-500/10' : ''
-              }`}
-            >
-              <div className="font-medium text-white text-sm mb-1">{course.courseName}</div>
-              <div className="text-xs text-gray-400 mb-1">Semesters: {course.semester}</div>
-              <div className="text-xs text-gray-500 mb-3 truncate">{course.description || 'No description'}</div>
-              <div className="flex gap-2">
-                <button
-                  onClick={() => onEdit(course)}
-                  className="flex-1 text-amber-400 hover:text-amber-300 hover:bg-amber-500/10 px-3 py-1.5 rounded-lg transition-colors text-sm"
-                >
-                  Edit
-                </button>
-                <button
-                  onClick={() => handleDelete(course._id)}
-                  className="flex-1 text-red-400 hover:text-red-300 hover:bg-red-500/10 px-3 py-1.5 rounded-lg transition-colors text-sm"
-                >
-                  Delete
-                </button>
-              </div>
+        {courses.map((course) => (
+          <div
+            key={course._id}
+            className={`bg-black/40 border border-purple-500/20 rounded-xl p-4 ${
+              editingCourseId === course._id ? 'border-amber-500/50 bg-amber-500/10' : ''
+            }`}
+          >
+            <div className="font-medium text-white text-sm mb-1">{course.courseName}</div>
+            <div className="text-xs text-gray-400 mb-1">Semesters: {course.semester}</div>
+            <div className="text-xs text-gray-500 mb-3 truncate">{course.description || 'No description'}</div>
+            <div className="flex gap-2">
+              <button
+                onClick={() => onEdit(course)}
+                className="flex-1 text-amber-400 hover:text-amber-300 hover:bg-amber-500/10 px-3 py-1.5 rounded-lg transition-colors text-sm"
+              >
+                Edit
+              </button>
+              <button
+                onClick={() => handleDelete(course._id)}
+                className="flex-1 text-red-400 hover:text-red-300 hover:bg-red-500/10 px-3 py-1.5 rounded-lg transition-colors text-sm"
+              >
+                Delete
+              </button>
             </div>
-          ))
-        )}
+          </div>
+        ))}
       </div>
 
       {/* Desktop Table View */}
@@ -86,40 +115,34 @@ export default function CoursesTable({ courses, onDelete, onEdit, editingCourseI
             </tr>
           </thead>
           <tbody className="divide-y divide-purple-500/10">
-            {courses.length === 0 ? (
-              <tr>
-                <td colSpan="4" className="py-4 text-center text-gray-500 text-sm">No courses found.</td>
+            {courses.map((course) => (
+              <tr
+                key={course._id}
+                className={`hover:bg-white/5 transition-colors ${
+                  editingCourseId === course._id ? 'bg-amber-500/20' : ''
+                }`}
+              >
+                <td className="py-3 text-xs md:text-sm font-medium text-white">{course.courseName}</td>
+                <td className="py-3 text-xs md:text-sm">{course.semester}</td>
+                <td className="py-3 text-xs md:text-sm text-gray-400 max-w-xs truncate hidden md:table-cell">
+                  {course.description || 'N/A'}
+                </td>
+                <td className="py-3 text-right space-x-1 sm:space-x-2">
+                  <button
+                    onClick={() => onEdit(course)}
+                    className="text-amber-400 hover:text-amber-300 hover:bg-amber-500/10 px-2 sm:px-3 py-1 rounded-lg transition-colors text-xs sm:text-sm"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    onClick={() => handleDelete(course._id)}
+                    className="text-red-400 hover:text-red-300 hover:bg-red-500/10 px-2 sm:px-3 py-1 rounded-lg transition-colors text-xs sm:text-sm"
+                  >
+                    Delete
+                  </button>
+                </td>
               </tr>
-            ) : (
-              courses.map((course) => (
-                <tr
-                  key={course._id}
-                  className={`hover:bg-white/5 transition-colors ${
-                    editingCourseId === course._id ? 'bg-amber-500/20' : ''
-                  }`}
-                >
-                  <td className="py-3 text-xs md:text-sm font-medium text-white">{course.courseName}</td>
-                  <td className="py-3 text-xs md:text-sm">{course.semester}</td>
-                  <td className="py-3 text-xs md:text-sm text-gray-400 max-w-xs truncate hidden md:table-cell">
-                    {course.description || 'N/A'}
-                  </td>
-                  <td className="py-3 text-right space-x-1 sm:space-x-2">
-                    <button
-                      onClick={() => onEdit(course)}
-                      className="text-amber-400 hover:text-amber-300 hover:bg-amber-500/10 px-2 sm:px-3 py-1 rounded-lg transition-colors text-xs sm:text-sm"
-                    >
-                      Edit
-                    </button>
-                    <button
-                      onClick={() => handleDelete(course._id)}
-                      className="text-red-400 hover:text-red-300 hover:bg-red-500/10 px-2 sm:px-3 py-1 rounded-lg transition-colors text-xs sm:text-sm"
-                    >
-                      Delete
-                    </button>
-                  </td>
-                </tr>
-              ))
-            )}
+            ))}
           </tbody>
         </table>
       </div>
