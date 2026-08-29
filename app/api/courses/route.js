@@ -1,70 +1,39 @@
-// app/api/courses/route.js
-import { NextResponse } from 'next/server'; // ✅ Use NextResponse in App Router
-import { connectDB } from '@/lib/dbConnect'; // ✅ Fixed: Use connectDB (not connectToDB)
-import Course from '@/models/Course';
+import { NextResponse } from "next/server";
+import connectDB from "@/lib/dbConnect";
+import Course from "@/models/Course";
 
-// GET: List all courses
-export async function GET() {
+export async function PUT(req, { params }) {
+  await connectDB();
   try {
-    await connectDB();
-    const courses = await Course.find({}).sort({ semester: 1 }); // ✅ Sort for better UX
-    console.log('Fetched Courses:', courses);
-    return NextResponse.json(courses); // ✅ Clean response
-  } catch (error) {
-    console.error('GET Courses Error:', error);
-    return NextResponse.json(
-      { message: 'Failed to fetch courses', error: error.message },
-      { status: 500 }
+    const { id } = params;
+    const { courseName, semester, description } = await req.json();
+    
+    if (!id) return NextResponse.json({ error: "ID is required" }, { status: 400 });
+
+    const updatedCourse = await Course.findByIdAndUpdate(
+      id,
+      { courseName, semester, description },
+      { new: true }
     );
+
+    if (!updatedCourse) return NextResponse.json({ error: "Course not found" }, { status: 404 });
+    return NextResponse.json({ message: "Course updated successfully", course: updatedCourse });
+  } catch (err) {
+    return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }
 
-// POST: Add new course
-export async function POST(request) { // ✅ 'request' not 'req, res'
+export async function DELETE(req, { params }) {
+  await connectDB();
   try {
-    await connectDB();
+    const { id } = params;
+    if (!id) return NextResponse.json({ error: "ID is required" }, { status: 400 });
 
-    const body = await request.json(); // ✅ Parse body from request
-    const { courseName, semester, description = '' } = body;
-
-    if (!courseName || semester === undefined) {
-      return NextResponse.json(
-        { message: 'Course name and semester are required' },
-        { status: 400 }
-      );
-    }
-
-    // Check for duplicate courseName + semester combo or unique semester
-    const exists = await Course.findOne({ courseName }); // Since courseName is unique per schema
-    if (exists) {
-      return NextResponse.json(
-        {
-          message: `course is alrady exists ${courseName}`,
-        },
-        { status: 409 }
-      );
-    }
-
-    const newCourse = await Course.create({
-      courseName,
-      semester: parseInt(semester, 10),
-      description,
-    });
-
-    return NextResponse.json(newCourse, { status: 201 });
-  } catch (error) {
-    console.error('POST Course Error:', error);
-
-    if (error.code === 11000) {
-      return NextResponse.json(
-        { message: 'Duplicate entry detected' },
-        { status: 409 }
-      );
-    }
-
-    return NextResponse.json(
-      { message: 'Server error', error: error.message },
-      { status: 500 }
-    );
+    const deletedCourse = await Course.findByIdAndDelete(id);
+    if (!deletedCourse) return NextResponse.json({ error: "Course not found" }, { status: 404 });
+    
+    return NextResponse.json({ message: "Course deleted successfully" });
+  } catch (err) {
+    return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }
