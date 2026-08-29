@@ -9,6 +9,8 @@ import NotesManagement from './NotesManagement/NotesManagement';
 import CoursesManagement from './CoursesManagement/CoursesManagement';
 import AdminsManagement from './AdminsManagement/AdminsManagement';
 import UsersManagement from './UsersManagement/UsersManagement'; // 👈 New import
+// Add import
+import QueriesManagement from './QueriesManagement/QueriesManagement';
 
 const ALLOWED_ADMIN_EMAIL = 'codershab@gmail.com';
 
@@ -45,18 +47,18 @@ export default function AdminDashboard() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex flex-col md:flex-row">
-      <Sidebar 
-        activeTab={activeTab} 
-        setActiveTab={setActiveTab} 
-        router={router} 
+      <Sidebar
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+        router={router}
       />
-      
+
       <main className="flex-1 p-3 sm:p-4 md:p-6 lg:p-8 overflow-y-auto w-full max-w-full">
         <div className="w-full max-w-7xl mx-auto">
           {activeTab === 'dashboard' && (
             <DashboardTab courses={courses} notes={notes} admins={admins} />
           )}
-          
+
           {activeTab === 'notes' && (
             <NotesManagement
               courses={courses}
@@ -70,7 +72,7 @@ export default function AdminDashboard() {
               setSearchQuery={setSearchQuery}
             />
           )}
-          
+
           {activeTab === 'courses' && (
             <CoursesManagement
               courses={courses}
@@ -83,7 +85,7 @@ export default function AdminDashboard() {
               setSearchQuery={setSearchQuery}
             />
           )}
-          
+
           {activeTab === 'admins' && (
             <AdminsManagement
               admins={admins}
@@ -102,6 +104,11 @@ export default function AdminDashboard() {
           {activeTab === 'users' && (
             <UsersManagement />
           )}
+          // Add to switch/case
+          {activeTab === 'queries' && (
+            <QueriesManagement />
+          )}
+
         </div>
       </main>
     </div>
