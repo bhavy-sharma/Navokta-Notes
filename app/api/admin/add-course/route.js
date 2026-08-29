@@ -1,27 +1,34 @@
 import { NextResponse } from 'next/server';
+import connectDB from '@/lib/db';
 import Course from '@/models/Course';
-import { connectDB } from '@/lib/dbConnect';
 
 export async function POST(request) {
   try {
     await connectDB();
     const body = await request.json();
-    const { courseName, semester, description = '' } = body;
+    const { courseName, semester, description } = body;
 
-    if (!courseName || semester === undefined) {
-      return NextResponse.json({ message: 'Course name and semester are required' }, { status: 400 });
+    // Check if course already exists
+    const existingCourse = await Course.findOne({ courseName });
+    if (existingCourse) {
+      return NextResponse.json(
+        { message: 'Course already exists' },
+        { status: 400 }
+      );
     }
 
-    const newCourse = new Course({
+    const newCourse = await Course.create({
       courseName,
-      semester: parseInt(semester, 10),
-      description,
+      semester,
+      description: description || '',
     });
 
-    await newCourse.save();
-    return NextResponse.json({ message: 'Course/Semester added successfully', course: newCourse }, { status: 201 });
+    return NextResponse.json(newCourse, { status: 201 });
   } catch (error) {
-    console.error('Add Course Error:', error);
-    return NextResponse.json({ message: 'Internal server error', error: error.message }, { status: 500 });
+    console.error('Error adding course:', error);
+    return NextResponse.json(
+      { message: 'Failed to add course' },
+      { status: 500 }
+    );
   }
 }
