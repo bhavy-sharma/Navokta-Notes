@@ -1,39 +1,17 @@
-import { NextResponse } from "next/server";
-import connectDB from "@/lib/dbConnect";
-import Course from "@/models/Course";
+import { NextResponse } from 'next/server';
+import connectDB from '@/lib/db';
+import Course from '@/models/Course';
 
-export async function PUT(req, { params }) {
-  await connectDB();
+export async function GET() {
   try {
-    const { id } = params;
-    const { courseName, semester, description } = await req.json();
-    
-    if (!id) return NextResponse.json({ error: "ID is required" }, { status: 400 });
-
-    const updatedCourse = await Course.findByIdAndUpdate(
-      id,
-      { courseName, semester, description },
-      { new: true }
+    await connectDB();
+    const courses = await Course.find({}).sort({ courseName: 1 });
+    return NextResponse.json(courses, { status: 200 });
+  } catch (error) {
+    console.error('Error fetching courses:', error);
+    return NextResponse.json(
+      { error: 'Failed to fetch courses' },
+      { status: 500 }
     );
-
-    if (!updatedCourse) return NextResponse.json({ error: "Course not found" }, { status: 404 });
-    return NextResponse.json({ message: "Course updated successfully", course: updatedCourse });
-  } catch (err) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
-  }
-}
-
-export async function DELETE(req, { params }) {
-  await connectDB();
-  try {
-    const { id } = params;
-    if (!id) return NextResponse.json({ error: "ID is required" }, { status: 400 });
-
-    const deletedCourse = await Course.findByIdAndDelete(id);
-    if (!deletedCourse) return NextResponse.json({ error: "Course not found" }, { status: 404 });
-    
-    return NextResponse.json({ message: "Course deleted successfully" });
-  } catch (err) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }
