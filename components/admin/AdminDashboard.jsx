@@ -8,6 +8,7 @@ import DashboardTab from './DashboardTab';
 import NotesManagement from './NotesManagement/NotesManagement';
 import CoursesManagement from './CoursesManagement/CoursesManagement';
 import AdminsManagement from './AdminsManagement/AdminsManagement';
+import UsersManagement from './UsersManagement/UsersManagement'; // 👈 New import
 
 const ALLOWED_ADMIN_EMAIL = 'codershab@gmail.com';
 
@@ -44,16 +45,16 @@ export default function AdminDashboard() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex flex-col md:flex-row">
-      <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} router={router} />
+      <Sidebar 
+        activeTab={activeTab} 
+        setActiveTab={setActiveTab} 
+        router={router} 
+      />
       
       <main className="flex-1 p-3 sm:p-4 md:p-6 lg:p-8 overflow-y-auto w-full max-w-full">
         <div className="w-full max-w-7xl mx-auto">
           {activeTab === 'dashboard' && (
-            <DashboardTab 
-              courses={courses} 
-              notes={notes} 
-              admins={admins} 
-            />
+            <DashboardTab courses={courses} notes={notes} admins={admins} />
           )}
           
           {activeTab === 'notes' && (
@@ -95,6 +96,11 @@ export default function AdminDashboard() {
               searchQuery={searchQuery}
               setSearchQuery={setSearchQuery}
             />
+          )}
+
+          {/* 👈 New User Management Tab */}
+          {activeTab === 'users' && (
+            <UsersManagement />
           )}
         </div>
       </main>
