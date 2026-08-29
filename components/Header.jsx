@@ -98,7 +98,7 @@ export default function Header() {
   const handleDropdownLeave = () => {
     dropdownTimeoutRef.current = setTimeout(() => {
       setIsDropdownOpen(false);
-    }, 200); // 200ms delay to allow moving to dropdown
+    }, 200);
   };
 
   const handleDropdownItemEnter = () => {
@@ -142,6 +142,9 @@ export default function Header() {
 
   // Check if user is admin
   const isAdmin = user?.role === 'admin';
+  
+  // Check if current page is home
+  const isHomePage = pathname === '/';
 
   return (
     <header className="relative">
@@ -169,6 +172,29 @@ export default function Header() {
 
           {/* ================= DESKTOP NAV ================= */}
           <nav className="hidden md:flex items-center gap-2 lg:gap-3">
+            {/* Home Button - Only show if not on home page */}
+            {!isHomePage && (
+              <Link
+                href="/"
+                className="group flex items-center gap-2 px-3 py-2 rounded-xl text-gray-300 hover:text-white hover:bg-white/5 transition-all duration-300"
+              >
+                <svg
+                  className="h-5 w-5 text-indigo-400 group-hover:text-indigo-300 transition"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1-1h-3m-6 0V5a1 1 0 011-1h2a1 1 0 011 1v14a1 1 0 001 1h2a1 1 0 001-1V5a1 1 0 00-1-1H9a1 1 0 00-1 1z"
+                  />
+                </svg>
+                <span className="hidden lg:inline">Home</span>
+              </Link>
+            )}
+
             {/* About */}
             <Link
               href="/about"
@@ -193,7 +219,7 @@ export default function Header() {
             {/* Admin Dashboard Link - Only for admins */}
             {isAdmin && (
               <Link
-                href="/admin/dashboard"
+                href="/admin"
                 className="group flex items-center gap-2 px-3 py-2 rounded-xl text-gray-300 hover:text-white hover:bg-white/5 transition-all duration-300"
               >
                 <svg
@@ -269,7 +295,7 @@ export default function Header() {
                   </svg>
                 </button>
 
-                {/* Dropdown - Always visible on hover, click toggles */}
+                {/* Dropdown */}
                 <div 
                   className={`absolute right-0 mt-2 w-56 bg-black/95 backdrop-blur-xl border border-gray-700/50 rounded-2xl shadow-2xl py-2 overflow-hidden transition-all duration-200 ${
                     isDropdownOpen 
@@ -279,6 +305,31 @@ export default function Header() {
                   onMouseEnter={handleDropdownItemEnter}
                   onMouseLeave={handleDropdownItemLeave}
                 >
+                  {/* Home - Always visible in dropdown */}
+                  <Link
+                    href="/"
+                    onClick={() => {
+                      closeMenu();
+                      setIsDropdownOpen(false);
+                    }}
+                    className="flex items-center px-5 py-3 text-gray-300 hover:text-white hover:bg-white/5 transition-all duration-200"
+                  >
+                    <svg
+                      className="h-5 w-5 mr-3 text-indigo-400"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1-1h-3m-6 0V5a1 1 0 011-1h2a1 1 0 011 1v14a1 1 0 001 1h2a1 1 0 001-1V5a1 1 0 00-1-1H9a1 1 0 00-1 1z"
+                      />
+                    </svg>
+                    Home
+                  </Link>
+
                   <div className="px-4 py-3 border-b border-gray-800/60">
                     <p className="text-xs text-gray-500 uppercase tracking-wide">
                       Account
@@ -344,7 +395,7 @@ export default function Header() {
                   {/* Admin Panel - Only for admins */}
                   {isAdmin && (
                     <Link
-                      href="/admin/dashboard"
+                      href="/admin"
                       onClick={() => {
                         closeMenu();
                         setIsDropdownOpen(false);
@@ -491,7 +542,7 @@ export default function Header() {
               {/* Admin Link - Mobile */}
               {isAdmin && (
                 <Link
-                  href="/admin/dashboard"
+                  href="/admin"
                   onClick={closeMenu}
                   className="flex items-center p-3 rounded-xl text-gray-300 hover:text-white hover:bg-white/5 transition-all duration-200 group"
                 >
