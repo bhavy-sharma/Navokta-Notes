@@ -5,14 +5,15 @@ import { useState } from 'react';
 export default function Sidebar({ activeTab, setActiveTab, router }) {
   const [isOpen, setIsOpen] = useState(false);
 
-  const tabs = [
-    { id: 'dashboard', label: 'Dashboard', icon: '📊' },
-    { id: 'notes', label: 'Notes', icon: '📝' },
-    { id: 'courses', label: 'Courses', icon: '📚' },
-    { id: 'admins', label: 'Admins', icon: '👥' },
-    { id: 'users', label: 'Users', icon: '👤' }, // 👈 New Tab
-  ];
-
+// Add this to your tabs array
+const tabs = [
+  { id: 'dashboard', label: 'Dashboard', icon: '📊' },
+  { id: 'notes', label: 'Notes', icon: '📝' },
+  { id: 'courses', label: 'Courses', icon: '📚' },
+  { id: 'admins', label: 'Admins', icon: '👥' },
+  { id: 'users', label: 'Users', icon: '👤' },
+  { id: 'queries', label: 'Queries', icon: '📩' }, // 👈 Add this
+];
   const handleTabClick = (tabId) => {
     setActiveTab(tabId);
     setIsOpen(false);
