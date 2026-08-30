@@ -104,7 +104,7 @@ export default function AdminDashboard() {
           {activeTab === 'users' && (
             <UsersManagement />
           )}
-          // Add to switch/case
+          
           {activeTab === 'queries' && (
             <QueriesManagement />
           )}

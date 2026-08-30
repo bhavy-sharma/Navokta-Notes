@@ -239,7 +239,7 @@ export default function Header() {
             {/* Admin Dashboard Link - Only for admins */}
             {isAdmin && (
               <Link
-                href="/admin"
+                href="/admin/dashboard"
                 className="group flex items-center gap-2 px-3 py-2 rounded-xl text-gray-300 hover:text-white hover:bg-white/5 transition-all duration-300"
               >
                 <svg
@@ -440,7 +440,7 @@ export default function Header() {
                   {/* Admin Panel - Only for admins */}
                   {isAdmin && (
                     <Link
-                      href="/admin"
+                      href="/admin/dashboard"
                       onClick={() => {
                         closeMenu();
                         setIsDropdownOpen(false);
@@ -609,7 +609,7 @@ export default function Header() {
               {/* Admin Link - Mobile */}
               {isAdmin && (
                 <Link
-                  href="/admin"
+                  href="/admin/dashboard"
                   onClick={closeMenu}
                   className="flex items-center p-3 rounded-xl text-gray-300 hover:text-white hover:bg-white/5 transition-all duration-200 group"
                 >
