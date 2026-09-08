@@ -65,8 +65,27 @@ export default function SubjectContent() {
   }, [subjects, searchQuery])
 
   const handleDownload = async (item) => {
-    window.open(item.link, '_blank')
+    // 1. Ensure the URL is properly formatted
+    let url = item.link
+    if (url && !url.startsWith('http') && !url.startsWith('/') && !url.startsWith('data:')) {
+      url = `https://${url}`
+    }
 
+    // 2. Reliable way to open a link in a new tab (bypasses most popup blockers)
+    const link = document.createElement('a')
+    link.href = url
+    link.target = '_blank'
+    link.rel = 'noopener noreferrer'
+    
+    // Optional: If you want to force a download instead of opening in the browser, 
+    // uncomment the line below (works best for same-origin files):
+    // link.download = item.subject || 'document'
+
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+
+    // 3. Update download count in the background
     try {
       const res = await fetch('/api/resource', {
         method: 'POST',
