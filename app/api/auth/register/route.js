@@ -17,32 +17,49 @@ const transporter = nodemailer.createTransport({
 
 export const POST = async (req) => {
   try {
+    // 1. Validate Environment Variables (Prevents silent email failures)
+    if (!process.env.SMTP_HOST || !process.env.SMTP_USER || !process.env.SMTP_PASS) {
+      console.error('Missing email configuration in environment variables');
+      return new Response(
+        JSON.stringify({ message: 'Server configuration error: Email service not configured' }), 
+        { status: 500 }
+      );
+    }
+
     await connectDB();
 
-    const { name, email, password } = await req.json();
+    const body = await req.json();
+    const { name, email, password } = body;
 
+    // 2. Validate Input
     if (!name || !email || !password) {
       return new Response(JSON.stringify({ message: 'All fields are required' }), { status: 400 });
     }
 
-    // Check if user already exists
+    // Basic email format validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return new Response(JSON.stringify({ message: 'Invalid email format' }), { status: 400 });
+    }
+
+    // 3. Check if user already exists
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       return new Response(JSON.stringify({ message: 'User already exists' }), { status: 400 });
     }
 
-    // Hash password
+    // 4. Hash password
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    // Generate 6-digit OTP
-    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    // 5. Generate secure 6-digit OTP (Cryptographically secure)
+    const otp = crypto.randomInt(100000, 999999).toString();
     
     // Hash OTP via SHA-256 before storage (Security Best Practice)
     const hashedOtp = crypto.createHash('sha256').update(otp).digest('hex');
     const otpExpires = Date.now() + 10 * 60 * 1000; // Expires in 10 minutes
 
-    // Create new user
+    // 6. Create new user
     const newUser = new User({
       name,
       email,
@@ -55,9 +72,10 @@ export const POST = async (req) => {
 
     await newUser.save();
 
-    // Send professional verification email
+    // 7. Send professional verification email
     const mailOptions = {
-      from: `"Navokta Notes" <${process.env.SMTP_FROM_EMAIL}>`,
+      // Fallback to SMTP_USER if SMTP_FROM_EMAIL is not set
+      from: `"Navokta Notes" <${process.env.SMTP_FROM_EMAIL || process.env.SMTP_USER}>`,
       to: email,
       subject: 'Verify Your Email - Navokta Notes',
       html: `
@@ -78,14 +96,30 @@ export const POST = async (req) => {
 
     await transporter.sendMail(mailOptions);
 
+    // 8. Return 201 Created (RESTful standard for successful resource creation)
     return new Response(
       JSON.stringify({ message: 'OTP sent successfully to your email' }), 
-      { status: 200 }
+      { status: 201 }
     );
+
   } catch (error) {
     console.error('Registration error:', error);
+    
+    // Handle MongoDB duplicate key error as a fallback safety net
+    if (error.code === 11000) {
+      return new Response(
+        JSON.stringify({ message: 'User with this email already exists' }), 
+        { status: 400 }
+      );
+    }
+
+    // Mask internal error details in production for security
+    const isDev = process.env.NODE_ENV === 'development';
     return new Response(
-      JSON.stringify({ message: 'Internal Server Error', error: error.message }), 
+      JSON.stringify({ 
+        message: 'Internal Server Error', 
+        error: isDev ? error.message : 'Something went wrong during registration' 
+      }), 
       { status: 500 }
     );
   }

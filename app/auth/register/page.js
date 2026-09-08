@@ -24,6 +24,13 @@ export default function RegisterPage() {
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+    if (error) setError(''); // Clear error as soon as user starts typing
+  };
+
+  const handleOtpChange = (e) => {
+    const value = e.target.value.replace(/\D/g, ''); // Allow only numbers
+    setOtp(value);
+    if (error) setError(''); // Clear error as soon as user starts typing
   };
 
   const handleRegisterSubmit = async (e) => {
@@ -70,6 +77,7 @@ export default function RegisterPage() {
     e.preventDefault();
     setLoading(true);
     setError('');
+    setSuccess(''); // Clear previous success messages
 
     if (otp.length !== 6) {
       setError('Please enter a valid 6-digit OTP');
@@ -102,6 +110,8 @@ export default function RegisterPage() {
     if (timer > 0) return;
     setLoading(true);
     setError('');
+    setSuccess('');
+    
     try {
       const res = await fetch('/api/auth/resend-otp', {
         method: 'POST',
@@ -121,6 +131,13 @@ export default function RegisterPage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleBackToRegister = () => {
+    setStep('register');
+    setOtp('');
+    setError('');
+    setSuccess('');
   };
 
   return (
@@ -150,18 +167,53 @@ export default function RegisterPage() {
               <div className="space-y-5">
                 <div>
                   <label className="block text-gray-300 text-sm font-medium mb-2">Full Name</label>
-                  <input type="text" name="name" value={formData.name} onChange={handleChange} className="w-full px-4 py-3 bg-black/60 border border-gray-700 rounded-xl text-white text-sm focus:outline-none focus:border-blue-500 placeholder-gray-500" placeholder="Enter your name" />
+                  <input 
+                    type="text" 
+                    name="name" 
+                    value={formData.name} 
+                    onChange={handleChange} 
+                    autoComplete="name"
+                    className="w-full px-4 py-3 bg-black/60 border border-gray-700 rounded-xl text-white text-sm focus:outline-none focus:border-blue-500 placeholder-gray-500 transition-colors" 
+                    placeholder="Enter your name" 
+                  />
                 </div>
                 <div>
                   <label className="block text-gray-300 text-sm font-medium mb-2">Email</label>
-                  <input type="email" name="email" value={formData.email} onChange={handleChange} className="w-full px-4 py-3 bg-black/60 border border-gray-700 rounded-xl text-white text-sm focus:outline-none focus:border-blue-500 placeholder-gray-500" placeholder="you@example.com" />
+                  <input 
+                    type="email" 
+                    name="email" 
+                    value={formData.email} 
+                    onChange={handleChange} 
+                    autoComplete="email"
+                    className="w-full px-4 py-3 bg-black/60 border border-gray-700 rounded-xl text-white text-sm focus:outline-none focus:border-blue-500 placeholder-gray-500 transition-colors" 
+                    placeholder="you@example.com" 
+                  />
                 </div>
                 <div>
                   <label className="block text-gray-300 text-sm font-medium mb-2">Password</label>
-                  <input type="password" name="password" value={formData.password} onChange={handleChange} className="w-full px-4 py-3 bg-black/60 border border-gray-700 rounded-xl text-white text-sm focus:outline-none focus:border-blue-500 placeholder-gray-500" placeholder="••••••••" />
+                  <input 
+                    type="password" 
+                    name="password" 
+                    value={formData.password} 
+                    onChange={handleChange} 
+                    autoComplete="new-password"
+                    className="w-full px-4 py-3 bg-black/60 border border-gray-700 rounded-xl text-white text-sm focus:outline-none focus:border-blue-500 placeholder-gray-500 transition-colors" 
+                    placeholder="••••••••" 
+                  />
                 </div>
-                <button type="submit" disabled={loading} className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white font-bold py-3 rounded-xl hover:shadow-xl hover:shadow-blue-500/25 transform hover:scale-105 transition-all duration-300 disabled:opacity-70 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center space-x-2">
-                  {loading ? (<><div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" /><span>Creating Account...</span></>) : (<span>Create Account</span>)}
+                <button 
+                  type="submit" 
+                  disabled={loading} 
+                  className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white font-bold py-3 rounded-xl hover:shadow-xl hover:shadow-blue-500/25 transform hover:scale-105 transition-all duration-300 disabled:opacity-70 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center space-x-2"
+                >
+                  {loading ? (
+                    <>
+                      <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      <span>Creating Account...</span>
+                    </>
+                  ) : (
+                    <span>Create Account</span>
+                  )}
                 </button>
               </div>
             </form>
@@ -192,15 +244,27 @@ export default function RegisterPage() {
                     pattern="[0-9]*"
                     maxLength={6}
                     value={otp}
-                    onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
-                    className="w-full px-4 py-4 bg-black/60 border border-gray-700 rounded-xl text-white text-2xl tracking-[0.5em] text-center focus:outline-none focus:border-blue-500 placeholder-gray-600"
+                    onChange={handleOtpChange}
+                    autoComplete="one-time-code"
+                    className="w-full px-4 py-4 bg-black/60 border border-gray-700 rounded-xl text-white text-2xl tracking-[0.5em] text-center focus:outline-none focus:border-blue-500 placeholder-gray-600 transition-colors"
                     placeholder="000000"
                     autoFocus
                   />
                 </div>
 
-                <button type="submit" disabled={loading || otp.length !== 6} className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white font-bold py-3 rounded-xl hover:shadow-xl hover:shadow-blue-500/25 transform hover:scale-105 transition-all duration-300 disabled:opacity-70 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center space-x-2">
-                  {loading ? (<><div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" /><span>Verifying...</span></>) : (<span>Verify Account</span>)}
+                <button 
+                  type="submit" 
+                  disabled={loading || otp.length !== 6} 
+                  className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white font-bold py-3 rounded-xl hover:shadow-xl hover:shadow-blue-500/25 transform hover:scale-105 transition-all duration-300 disabled:opacity-70 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center space-x-2"
+                >
+                  {loading ? (
+                    <>
+                      <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      <span>Verifying...</span>
+                    </>
+                  ) : (
+                    <span>Verify Account</span>
+                  )}
                 </button>
 
                 <div className="text-center">
@@ -209,13 +273,29 @@ export default function RegisterPage() {
                     {timer > 0 ? (
                       <span className="text-gray-400 cursor-not-allowed">Resend in {timer}s</span>
                     ) : (
-                      <button type="button" onClick={handleResendOtp} disabled={loading} className="text-blue-400 hover:underline font-medium disabled:opacity-50">Resend OTP</button>
+                      <button 
+                        type="button" 
+                        onClick={handleResendOtp} 
+                        disabled={loading} 
+                        className="text-blue-400 hover:underline font-medium disabled:opacity-50 transition-colors"
+                      >
+                        Resend OTP
+                      </button>
                     )}
                   </p>
                 </div>
                 
                 <div className="text-center mt-4">
-                  <button type="button" onClick={() => setStep('register')} className="text-gray-500 text-sm hover:text-gray-300 transition-colors">← Back to Registration</button>
+                  <button 
+                    type="button" 
+                    onClick={handleBackToRegister} 
+                    className="text-gray-500 text-sm hover:text-gray-300 transition-colors flex items-center justify-center gap-1 mx-auto"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                    </svg>
+                    Back to Registration
+                  </button>
                 </div>
               </div>
             </form>
