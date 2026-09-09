@@ -19,7 +19,6 @@ export default function LoginPage() {
 
   const showToast = (message, type) => {
     setToast({ show: true, message, type });
-    // Use functional update to avoid stale closure issues
     setTimeout(() => setToast({ show: false, message: '', type: '' }), 3000);
   };
 
@@ -59,18 +58,12 @@ export default function LoginPage() {
         setSuccess('Login successful! Redirecting...');
         showToast('Welcome back!', 'success');
 
-        // Role-based redirection using Next.js router (smoother than window.location)
+        // Role-based redirection using Next.js router
         const redirectPath = data.user.role === 'admin' ? '/admin/dashboard' : '/';
         router.push(redirectPath);
 
       } else {
-        // Handle unverified email redirect from backend
-        if (data.requiresVerification) {
-          showToast('Please verify your email first', 'error');
-          router.push(`/auth/verify?email=${encodeURIComponent(formData.email)}`);
-          return;
-        }
-
+        // Generic error handling (verification check removed)
         setError(data.message || 'Invalid email or password');
         showToast(data.message || 'Login failed', 'error');
       }
