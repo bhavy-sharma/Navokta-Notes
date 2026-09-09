@@ -84,7 +84,7 @@ export default function ContactPage() {
               <div className="bg-black/40 backdrop-blur-sm border border-purple-500/20 rounded-2xl p-5 text-center hover:border-purple-500/40 transition-all duration-300">
                 <div className="text-3xl mb-2">📧</div>
                 <h3 className="text-white font-semibold text-sm">Email</h3>
-                <p className="text-gray-400 text-xs mt-1">support@navokta.com</p>
+                <p className="text-gray-400 text-xs mt-1">navokta@gmail.com</p>
               </div>
               <div className="bg-black/40 backdrop-blur-sm border border-purple-500/20 rounded-2xl p-5 text-center hover:border-purple-500/40 transition-all duration-300">
                 <div className="text-3xl mb-2">📍</div>
@@ -94,7 +94,7 @@ export default function ContactPage() {
               <div className="bg-black/40 backdrop-blur-sm border border-purple-500/20 rounded-2xl p-5 text-center hover:border-purple-500/40 transition-all duration-300">
                 <div className="text-3xl mb-2">⏰</div>
                 <h3 className="text-white font-semibold text-sm">Working Hours</h3>
-                <p className="text-gray-400 text-xs mt-1">Mon - Fri, 9 AM - 6 PM</p>
+                <p className="text-gray-400 text-xs mt-1">Mon - Fri, 6 PM - 9 AM</p>
               </div>
             </div>
 
